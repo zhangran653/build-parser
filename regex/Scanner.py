@@ -14,14 +14,12 @@ class TokenType(Enum):
     MINUS = 8  # -
     STAR = 9  # *
     QUESTION = 10  # ?
-    #EQUAL = 11  # =
+    # EQUAL = 11  # =
     S_ANCHOR = 12  # ^
     E_ANCHOR = 13  # $
     ESCAPE = 14  # \
-    CHAR = 15  # normal character
-    INT = 17  # [0-9]+
-    LETTER = 18  # [a-zA-Z]+
-    OR = 19  # |
+    OR = 15  # |
+    CHAR = 16  # normal character
 
     EOF = -1  # EOF
 
@@ -74,7 +72,10 @@ class Scanner:
         char = self.advance()
         token_type = self.token_map.get(char, None)
         if not token_type:
-            self.add_token(TokenType.CHAR)
+            if self.is_valid_char(char):
+                self.add_token(TokenType.CHAR)
+            else:
+                raise ValueError(f"character {char} not supported")
         else:
             pass
 
@@ -102,3 +103,14 @@ class Scanner:
         if self.current + 1 >= len(self.input):
             return '\0'
         return self.input[self.current + 1]
+
+    def is_valid_char(self, char):
+        code_point = ord(char)
+        return (
+                code_point == 0x9 or
+                code_point == 0xA or
+                code_point == 0xD or
+                0x20 <= code_point <= 0xD7FF or
+                0xE000 <= code_point <= 0xFFFD or
+                0x10000 <= code_point <= 0x10FFFF
+        )

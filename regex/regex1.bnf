@@ -1,16 +1,16 @@
-Regex ::= StartOfStringAnchor? Expression
+Regex ::= Expression
 
 Expression ::= Subexpression ( "|" Expression )?
 
 Subexpression ::= (Match | Group | Anchor | Backreference)+
 
-Group ::= "(" ( " ?:" )? Expression ")" Quantifier?
+Group ::= "(" ( "?:" )? Expression ")" Quantifier?
 
 Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
 
 CharacterGroup ::= "[" "^"? (CharacterClass | CharacterRange | Char - "]")+ "]"
 
-CharacterClass ::= "\w" | "\W" | "\d" | "\D" | "\s" | "\S" | "\p{" Letters "}"
+CharacterClass ::= "\w" | "\W" | "\d" | "\D" | "\s" | "\S"
 
 CharacterRange ::= Char "-" Char
 

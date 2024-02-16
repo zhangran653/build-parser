@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class TokenType(Enum):
+    # single token
     LEFT_PAREN = 0  # (
     RIGHT_PAREN = 1  # )
     LEFT_BRACE = 2  # {
@@ -13,10 +14,14 @@ class TokenType(Enum):
     MINUS = 8  # -
     STAR = 9  # *
     QUESTION = 10  # ?
-    EQUAL = 11  # =
+    #EQUAL = 11  # =
     S_ANCHOR = 12  # ^
     E_ANCHOR = 13  # $
     ESCAPE = 14  # \
+    CHAR = 15  # normal character
+    INT = 17  # [0-9]+
+    LETTER = 18  # [a-zA-Z]+
+    OR = 19  # |
 
     EOF = -1  # EOF
 
@@ -48,9 +53,11 @@ class Scanner:
             '-': TokenType.MINUS,
             '*': TokenType.STAR,
             '?': TokenType.QUESTION,
-            '=': TokenType.EQUAL,
+            # '=': TokenType.EQUAL,
             '^': TokenType.S_ANCHOR,
-            '$': TokenType.E_ANCHOR
+            '$': TokenType.E_ANCHOR,
+            '\\': TokenType.ESCAPE,
+            '|': TokenType.OR
         }
 
     def scan_tokens(self) -> list[Token]:
@@ -65,13 +72,11 @@ class Scanner:
 
     def scan_token(self):
         char = self.advance()
-        token_type = self.token_map[char]
-        if token_type:
-            self.add_token(token_type)
+        token_type = self.token_map.get(char, None)
+        if not token_type:
+            self.add_token(TokenType.CHAR)
         else:
-            # '\'
             pass
-
 
     def advance(self) -> str:
         self.current += 1

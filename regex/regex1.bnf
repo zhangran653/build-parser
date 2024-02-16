@@ -1,0 +1,29 @@
+Regex ::= StartOfStringAnchor? Expression
+
+Expression ::= Subexpression ( "|" Expression )?
+
+Subexpression ::= (Match | Group | Anchor | Backreference)+
+
+Group ::= "(" ( " ?:" )? Expression ")" Quantifier?
+
+Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
+
+CharacterGroup ::= "[" "^"? (CharacterClass | CharacterRange | Char - "]")+ "]"
+
+CharacterClass ::= "\w" | "\W" | "\d" | "\D" | "\s" | "\S" | "\p{" Letters "}"
+
+CharacterRange ::= Char "-" Char
+
+Quantifier ::= ( "*" | "+" | "?" | "{" Integer ( "," Integer? )? "}" ) LazyModifier?
+
+LazyModifier ::= "?"
+
+Backreference ::= "\" Integer
+
+Anchor ::= "^" | "\b" | "\B" | "\A" | "\z" | "\Z" | "\G" | "$"
+
+Integer ::= [0-9]+
+
+Letters ::= [a-zA-Z]+
+
+Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]

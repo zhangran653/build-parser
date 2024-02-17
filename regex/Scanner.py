@@ -19,9 +19,9 @@ class TokenType(Enum):
     E_ANCHOR = auto()  # $
     ESCAPE = auto()  # \
     OR = auto()  # |
-    INT = auto()
-    LETTER = auto()
-    ASCII = auto()
+    INT = auto()  # int
+    LETTER = auto()  # a-zA-Z
+    ASCII = auto()  # ascii expect for int and letter
     CHAR = auto()  # normal character EXCEPT INT, LETTER ,ASCII
 
     # ESCAPES

@@ -1,5 +1,6 @@
-from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, CharacterClass, \
-    CharacterGroup, Match, Group, SubExpression, Expression
+from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
+    CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
+    CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted
 
 
 class ASTPrinter(Visitor):
@@ -16,7 +17,7 @@ class ASTPrinter(Visitor):
             return f'[{",".join(x.accept(self) for x in expr.items)}]'
 
     def visit_group(self, expr: Group):
-        return f'{{"type":"Group","expression":{expr.expression.accept(self)} ,"non_capturing": {expr.non_capturing}, "quantifier":{expr.quantifier.accept(self)} }}'
+        return f'{{"type":"Group","expression":{expr.expression.accept(self)} ,"non_capturing": {1 if expr.non_capturing else 0}, "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"} }}'
 
     def visit_match(self, expr: Match):
         return f'{{"type":"Match","quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"}, "match_item":{expr.match_item.accept(self)} }}'
@@ -24,8 +25,23 @@ class ASTPrinter(Visitor):
     def visit_character_group(self, expr: CharacterGroup):
         return f'{{"type":"CharacterGroup","negative":"{expr.negative}","items":[{",".join(x.accept(self) for x in expr.items)}] }}'
 
-    def visit_character_class(self, expr: CharacterClass):
-        return f'{{"type":"CharacterClass","token":"{expr.value.value}" }}'
+    def visit_char_class_any_word(self, expr: CharClassAnyWord):
+        return f'{{"type":"CharClassAnyWord","token":"{expr.value.value}" }}'
+
+    def visit_char_class_any_word_inv(self, expr: CharClassAnyWordInverted):
+        return f'{{"type":"CharClassAnyWordInv","token":"{expr.value.value}" }}'
+
+    def visit_char_class_any_digit(self, expr: CharClassAnyDecimalDigit):
+        return f'{{"type":"CharClassAnyDigit","token":"{expr.value.value}" }}'
+
+    def visit_char_class_any_digit_inv(self, expr: CharClassAnyDecimalDigitInverted):
+        return f'{{"type":"CharClassAnyDigitInv","token":"{expr.value.value}" }}'
+
+    def visit_char_class_any_white_space(self, expr: CharClassAnyWhitespace):
+        return f'{{"type":"CharClassAnyWhiteSpace","token":"{expr.value.value}" }}'
+
+    def visit_char_class_any_white_space_inv(self, expr: CharClassAnyWhitespaceInverted):
+        return f'{{"type":"CharClassAnyWhiteSpaceInv","token":"{expr.value.value}" }}'
 
     def visit_character_range(self, expr: CharRange):
         return f'{{"type":"CharacterRange","from":"{expr.start.value}","to":"{expr.to.value if expr.to else "null"}" }}'
@@ -40,7 +56,7 @@ class ASTPrinter(Visitor):
         return f'{{"type":"Character","token":"{expr.token.value}"}}'
 
     def visit_range_quantifier(self, expr: RangeQuantifier):
-        return f'{{"type":"RangeQuantifier","low_bound":{expr.low_bound.value},"up_bound":{expr.up_bound.value if expr.up_bound else "null"} }}'
+        return f'{{"type":"RangeQuantifier","low_bound":{expr.low_bound},"fixed_bound":{1 if expr.fixed_bound else 0}, "up_bound":{expr.up_bound if expr.up_bound else "null"} }}'
 
     def visit_zero_or_more_quantifier(self, expr):
         return f'{{"type":"ZeroOrMoreQuantifier","token":"*"}}'
@@ -79,7 +95,4 @@ class ASTPrinter(Visitor):
         ret = []
         for x in exprs:
             ret.append(x.accept(self))
-        if len(ret) > 1:
-            return f'[{",".join(x for x in ret)}]'
-        else:
-            return ret[0]
+        return f'[{",".join(x for x in ret)}]'

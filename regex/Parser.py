@@ -24,7 +24,22 @@ class Visitor:
     def visit_character_group(self, expr):
         raise NotImplementedError()
 
-    def visit_character_class(self, expr):
+    def visit_char_class_any_word(self, expr):
+        raise NotImplementedError()
+
+    def visit_char_class_any_word_inv(self, expr):
+        raise NotImplementedError()
+
+    def visit_char_class_any_digit(self, expr):
+        raise NotImplementedError()
+
+    def visit_char_class_any_digit_inv(self, expr):
+        raise NotImplementedError()
+
+    def visit_char_class_any_white_space(self, expr):
+        raise NotImplementedError()
+
+    def visit_char_class_any_white_space_inv(self, expr):
         raise NotImplementedError()
 
     def visit_character_range(self, expr):
@@ -135,12 +150,52 @@ class CharacterGroup(Expr):
         return visitor.visit_character_group(self)
 
 
-class CharacterClass(Expr):
+class CharClassAnyWord(Expr):
     def __init__(self, value: Token):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.visit_character_class(self)
+        return visitor.visit_char_class_any_word(self)
+
+
+class CharClassAnyWordInverted(Expr):
+    def __init__(self, value: Token):
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_char_class_any_word_inv(self)
+
+
+class CharClassAnyDecimalDigit(Expr):
+    def __init__(self, value: Token):
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_char_class_any_digit(self)
+
+
+class CharClassAnyDecimalDigitInverted(Expr):
+    def __init__(self, value: Token):
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_char_class_any_digit_inv(self)
+
+
+class CharClassAnyWhitespace(Expr):
+    def __init__(self, value: Token):
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_char_class_any_white_space(self)
+
+
+class CharClassAnyWhitespaceInverted(Expr):
+    def __init__(self, value: Token):
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_char_class_any_white_space_inv(self)
 
 
 class Backreference(Expr):
@@ -160,9 +215,11 @@ class Character(Expr):
 
 
 class RangeQuantifier(Expr):
-    def __init__(self, low_bound: Token, up_bound: Token = None):
+    def __init__(self, low_bound: int, up_bound: int = None, fixed_bound=True):
         self.low_bound = low_bound
         self.up_bound = up_bound
+        # {n} is fixed low bound,fixed. {n,} is >= low bound, not fixed
+        self.fixed_bound = fixed_bound
 
     def accept(self, visitor):
         return visitor.visit_range_quantifier(self)
@@ -292,6 +349,12 @@ CHAR_NO_RIGHT_BRACKET = [
 
 CHAR = CHAR_NO_RIGHT_BRACKET + [TokenType.RIGHT_BRACKET]
 
+# in character group [], these tokens are seen as literal char
+CHAR_GROUP_LITERALS = CHAR_NO_RIGHT_BRACKET + [TokenType.LEFT_PAREN,
+                                               TokenType.RIGHT_PAREN,
+                                               TokenType.DOT, TokenType.PLUS, TokenType.STAR, TokenType.S_ANCHOR,
+                                               TokenType.E_ANCHOR, TokenType.OR]
+
 # Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
 MATCH_EXPR_TYPES = [TokenType.DOT] + [TokenType.LEFT_BRACKET] + CHAR_CLASS + CHAR
 
@@ -383,17 +446,30 @@ class Parser:
 
     def quantifier(self):
         """
-        Quantifier ::= ( "*" | "+" | "?" | "{" Integer ( "," Integer? )? "}" ) LazyModifier?
+        Quantifier ::= ( "*" | "+" | "?" | "{" Integer+ ( "," Integer* )? "}" ) LazyModifier?
         :return:
         """
         token = self.previous()
         if token.type == TokenType.LEFT_BRACE:
             self.consume(TokenType.INT, "expect integer for range quantifier lower bound")
             low_bound = self.previous()
-            rq = RangeQuantifier(low_bound)
-            if self.match(TokenType.COMMA) and self.match(TokenType.INT):
-                up_bound = self.previous()
-                rq.up_bound = up_bound
+            low = int(low_bound.value)
+            while self.match(TokenType.INT):
+                low_bound = self.previous()
+                low = low * 10 + int(low_bound.value)
+            rq = RangeQuantifier(low)
+
+            if self.match(TokenType.COMMA):
+                rq.fixed_bound = False
+                if self.match(TokenType.INT):
+                    up_bound = self.previous()
+                    u = int(up_bound.value)
+                    while self.match(TokenType.INT):
+                        up_bound = self.previous()
+                        u = u * 10 + int(up_bound.value)
+                    if low > u:
+                        raise ValueError(f"{up_bound}: upper bound must greater than lower bound:{u}<{low}")
+                    rq.up_bound = u
             self.consume(TokenType.RIGHT_BRACE, "expect '}' for range quantifier ends")
             expr = rq
         elif token.type == TokenType.STAR:
@@ -459,11 +535,21 @@ class Parser:
             negative = True
 
         items = []
-
-        if self.match(*CHAR_CLASS):
+        """
+        "-" must between two characters, otherwise it's a normal character instead of range
+        [-a] : '-'|'a'
+        [z-] : 'z'|'-'
+        [a-z]: 'a' to 'z' , 'a' must <= 'z'
+        
+        +, *, ?, {} . and more keywords in character group means match literal
+        """
+        # [-xxx] first token is "-", treated as literal
+        if self.match(TokenType.MINUS):
+            items.append(self.char())
+        elif self.match(*CHAR_CLASS):
             items.append(self.char_class())
-        elif self.match(*CHAR_NO_RIGHT_BRACKET):
-            if self.check(TokenType.MINUS):
+        elif self.match(*CHAR_GROUP_LITERALS):
+            if self.check(TokenType.MINUS) and not self.check_next(TokenType.RIGHT_BRACKET):
                 items.append(self.char_range())
             else:
                 items.append(self.char())
@@ -473,8 +559,8 @@ class Parser:
         while True:
             if self.match(*CHAR_CLASS):
                 items.append(self.char_class())
-            elif self.match(*CHAR_NO_RIGHT_BRACKET):
-                if self.check(TokenType.MINUS):
+            elif self.match(*CHAR_GROUP_LITERALS):
+                if self.check(TokenType.MINUS) and not self.check_next(TokenType.RIGHT_BRACKET):
                     items.append(self.char_range())
                 else:
                     items.append(self.char())
@@ -496,12 +582,24 @@ class Parser:
             cr.to = self.previous()
         return cr
 
-    def char_class(self) -> CharacterClass:
+    def char_class(self):
         """
         # CharacterClass ::= "\w" | "\W" | "\d" | "\D" | "\s" | "\S"
         :return:
         """
-        return CharacterClass(self.previous())
+        token = self.previous()
+        if token.type == TokenType.ANY_WORD:
+            return CharClassAnyWord(token)
+        elif token.type == TokenType.ANY_WORD_INVERTED:
+            return CharClassAnyWordInverted(token)
+        elif token.type == TokenType.ANY_DIGIT:
+            return CharClassAnyDecimalDigit(token)
+        elif token.type == TokenType.ANY_DIGIT_INVERTED:
+            return CharClassAnyDecimalDigitInverted(token)
+        elif token.type == TokenType.ANY_WHITE_SPACE:
+            return CharClassAnyWhitespace(token)
+        elif token.type == TokenType.ANY_WHITE_SPACE_INVERTED:
+            return CharClassAnyWhitespaceInverted(token)
 
     def back_reference(self):
         self.consume(TokenType.INT, "expect integer in backreference")
@@ -535,7 +633,7 @@ class Parser:
     def consume(self, token_type: TokenType, msg: str) -> Token:
         if self.check(token_type):
             return self.advance()
-        raise ValueError(f"{self.peek()} not expected: {msg}")
+        raise ValueError(f"char at pos [{self.current}] not expected: {msg}")
 
     def check(self, token_type: TokenType) -> bool:
         if self.at_end():

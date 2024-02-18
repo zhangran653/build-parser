@@ -60,7 +60,7 @@ class RegexTest(unittest.TestCase):
         print(expressions)
 
     def test11(self):
-        scanner = Scanner("abc]")
+        scanner = Scanner("\[]")
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         expressions = parser.parse()

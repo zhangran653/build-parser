@@ -277,7 +277,7 @@ CHAR_CLASS = [
 ]
 
 # Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-CHAR = [
+CHAR_NO_RIGHT_BRACKET = [
     # TokenType.RIGHT_BRACKET,
     TokenType.RIGHT_BRACE,
     TokenType.LEFT_BRACE,
@@ -289,6 +289,8 @@ CHAR = [
     TokenType.ASCII,
     TokenType.CHAR,
 ]
+
+CHAR = CHAR_NO_RIGHT_BRACKET + [TokenType.RIGHT_BRACKET]
 
 # Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
 MATCH_EXPR_TYPES = [TokenType.DOT] + [TokenType.LEFT_BRACKET] + CHAR_CLASS + CHAR
@@ -460,7 +462,7 @@ class Parser:
 
         if self.match(*CHAR_CLASS):
             items.append(self.char_class())
-        elif self.match(*CHAR):
+        elif self.match(*CHAR_NO_RIGHT_BRACKET):
             if self.check(TokenType.MINUS):
                 items.append(self.char_range())
             else:
@@ -471,7 +473,7 @@ class Parser:
         while True:
             if self.match(*CHAR_CLASS):
                 items.append(self.char_class())
-            elif self.match(*CHAR):
+            elif self.match(*CHAR_NO_RIGHT_BRACKET):
                 if self.check(TokenType.MINUS):
                     items.append(self.char_range())
                 else:

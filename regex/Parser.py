@@ -9,92 +9,70 @@ class Expr:
 
 class Visitor:
 
-    @staticmethod
-    def visit_expression(expr):
+    def visit_expression(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_subexpression(expr):
+    def visit_subexpression(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_group(expr):
+    def visit_group(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_match(expr):
+    def visit_match(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_character_group(expr):
+    def visit_character_group(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_character_class(expr):
+    def visit_character_class(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_character_range(expr):
+    def visit_character_range(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_backreference(expr):
+    def visit_backreference(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_any_char(expr):
+    def visit_any_char(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_character(expr):
+    def visit_character(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_range_quantifier(expr):
+    def visit_range_quantifier(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_zero_or_more_quantifier(expr):
+    def visit_zero_or_more_quantifier(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_one_or_more_quantifier(expr):
+    def visit_one_or_more_quantifier(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_zero_or_one_quantifier(expr):
+    def visit_zero_or_one_quantifier(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_start_of_string(expr):
+    def visit_anchor_start_of_string(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_end_of_string(expr):
+    def visit_anchor_end_of_string(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_word_bound(expr):
+    def visit_anchor_word_bound(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_non_word_bound(expr):
+    def visit_anchor_non_word_bound(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_start_of_string_only(expr):
+    def visit_anchor_start_of_string_only(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_start_of_string_only_nnl(expr):
+    def visit_anchor_start_of_string_only_nnl(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_end_of_string_only(expr):
+    def visit_anchor_end_of_string_only(self, expr):
         raise NotImplementedError()
 
-    @staticmethod
-    def visit_anchor_pre_match_end(expr):
+    def visit_anchor_pre_match_end(self, expr):
         raise NotImplementedError()
 
 
@@ -166,7 +144,7 @@ class CharacterClass(Expr):
 
 
 class Backreference(Expr):
-    def __init__(self, number):
+    def __init__(self, number: Token):
         self.number = number
 
     def accept(self, visitor):
@@ -300,9 +278,8 @@ CHAR_CLASS = [
 
 # Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
 CHAR = [
-    TokenType.RIGHT_BRACKET,
+    # TokenType.RIGHT_BRACKET,
     TokenType.RIGHT_BRACE,
-    TokenType.RIGHT_PAREN,
     TokenType.LEFT_BRACE,
     TokenType.COMMA,
     TokenType.COLON,

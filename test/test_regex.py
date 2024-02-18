@@ -1,5 +1,7 @@
+import json
 import unittest
 
+from regex.ASTPrinter import ASTPrinter
 from regex.Parser import Parser
 from regex.Scanner import Scanner
 
@@ -58,8 +60,14 @@ class RegexTest(unittest.TestCase):
         print(expressions)
 
     def test11(self):
-        scanner = Scanner("a")
+        scanner = Scanner("abc]")
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         expressions = parser.parse()
-        print(expressions)
+        printer = ASTPrinter()
+        # Parse the JSON string into a Python dictionary
+        parsed_json = json.loads(printer.ast_string(expressions))
+
+        # Pretty print the JSON
+        pretty_json = json.dumps(parsed_json, indent=4)
+        print(pretty_json)

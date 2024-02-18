@@ -15,6 +15,7 @@ class TokenType(Enum):
     STAR = auto()  # *
     QUESTION = auto()  # ?
     COMMA = auto()  # ,
+    COLON = auto()  # :
     S_ANCHOR = auto()  # ^
     E_ANCHOR = auto()  # $
     ESCAPE = auto()  # \
@@ -74,7 +75,8 @@ class Scanner:
             '$': TokenType.E_ANCHOR,
             '\\': TokenType.ESCAPE,
             '|': TokenType.OR,
-            ',': TokenType.COMMA
+            ',': TokenType.COMMA,
+            ':': TokenType.COLON
         }
         self.escape_map = {
             'w': TokenType.ANY_WORD,

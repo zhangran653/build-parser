@@ -127,13 +127,15 @@ class Scanner:
                     self.add_token(TokenType.ASCII, char)
                 else:
                     if next_char in self.token_map:
+                        # TODO
                         self.advance()
                         self.add_token(TokenType.ASCII, next_char)
                     elif next_char in self.escape_map:
                         self.advance()
                         self.add_token(self.escape_map[next_char], next_char)
                     else:
-                        raise ValueError(f"character {char} at {self.current} can't be escaped")
+                        self.add_token(TokenType.ESCAPE, char)
+                        #  raise ValueError(f"character {char} at {self.current} can't be escaped")
             else:
                 self.add_token(token_type, char)
 

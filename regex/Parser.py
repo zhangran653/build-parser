@@ -352,8 +352,12 @@ CHAR = CHAR_NO_RIGHT_BRACKET + [TokenType.RIGHT_BRACKET]
 # in character group [], these tokens are seen as literal char
 CHAR_GROUP_LITERALS = CHAR_NO_RIGHT_BRACKET + [TokenType.LEFT_PAREN,
                                                TokenType.RIGHT_PAREN,
-                                               TokenType.DOT, TokenType.PLUS, TokenType.STAR, TokenType.S_ANCHOR,
-                                               TokenType.E_ANCHOR, TokenType.OR]
+                                               TokenType.DOT,
+                                               TokenType.PLUS,
+                                               TokenType.STAR,
+                                               TokenType.S_ANCHOR,
+                                               TokenType.E_ANCHOR,
+                                               TokenType.OR]
 
 # Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
 MATCH_EXPR_TYPES = [TokenType.DOT] + [TokenType.LEFT_BRACKET] + CHAR_CLASS + CHAR
@@ -393,24 +397,24 @@ class Parser:
         items = []
         if self.match(*ANCHORS):
             items.append(self.anchor())
-        elif self.match(TokenType.ESCAPE):
-            items.append(self.back_reference())
         elif self.match(TokenType.LEFT_PAREN):
             items.append(self.group())
         elif self.match(*MATCH_EXPR_TYPES):
             items.append(self.match_expr())
+        elif self.match(TokenType.ESCAPE):
+            items.append(self.back_reference())
         else:
             raise ValueError(f"{self.peek()} not expected: expect sub expression")
 
         while True:
             if self.match(*ANCHORS):
                 items.append(self.anchor())
-            elif self.match(TokenType.ESCAPE):
-                items.append(self.back_reference())
             elif self.match(TokenType.LEFT_PAREN):
                 items.append(self.group())
             elif self.match(*MATCH_EXPR_TYPES):
                 items.append(self.match_expr())
+            elif self.match(TokenType.ESCAPE):
+                items.append(self.back_reference())
             else:
                 break
         sub_expr = SubExpression(items)
@@ -543,30 +547,29 @@ class Parser:
         
         +, *, ?, {} . and more keywords in character group means match literal
         """
-        # [-xxx] first token is "-", treated as literal
-        if self.match(TokenType.MINUS):
-            items.append(self.char())
-        elif self.match(*CHAR_CLASS):
-            items.append(self.char_class())
-        elif self.match(*CHAR_GROUP_LITERALS):
-            if self.check(TokenType.MINUS) and not self.check_next(TokenType.RIGHT_BRACKET):
-                items.append(self.char_range())
-            else:
-                items.append(self.char())
-        else:
-            raise ValueError(f"{self.peek()} not expected: expect char_group")
+        if self.check(TokenType.RIGHT_BRACKET):
+            raise ValueError(f"{self.peek()} not expected")
+        if self.at_end():
+            raise ValueError(f"expect character group")
 
-        while True:
+        is_last_match_char = True
+        while not self.at_end() and not self.check(TokenType.RIGHT_BRACKET):
             if self.match(*CHAR_CLASS):
+                is_last_match_char = False
                 items.append(self.char_class())
-            elif self.match(*CHAR_GROUP_LITERALS):
-                if self.check(TokenType.MINUS) and not self.check_next(TokenType.RIGHT_BRACKET):
+            else:
+                # match char
+                self.advance()
+                if is_last_match_char and self.check(TokenType.MINUS) and (
+                        not self.check_next(TokenType.EOF, TokenType.RIGHT_BRACKET, *CHAR_CLASS)):
                     items.append(self.char_range())
                 else:
                     items.append(self.char())
-            else:
-                break
-        self.consume(TokenType.RIGHT_BRACKET, "expect ']' after character group")
+                is_last_match_char = True
+
+        if self.at_end():
+            raise ValueError(f"expect ']' after character group")
+        self.consume(TokenType.RIGHT_BRACKET, "")
         cg = CharacterGroup(items, negative)
         return cg
 
@@ -578,8 +581,8 @@ class Parser:
         c = self.previous()
         cr = CharRange(c)
         self.consume(TokenType.MINUS, "")
-        if self.match(*CHAR):
-            cr.to = self.previous()
+        self.advance()
+        cr.to = self.previous()
         return cr
 
     def char_class(self):
@@ -635,14 +638,20 @@ class Parser:
             return self.advance()
         raise ValueError(f"char at pos [{self.current}] not expected: {msg}")
 
-    def check(self, token_type: TokenType) -> bool:
+    def check(self, *token_type) -> bool:
         if self.at_end():
             return False
-        return self.peek().type == token_type
+        for t in token_type:
+            if self.peek().type == t:
+                return True
+        return False
 
-    def check_next(self, token_type: TokenType) -> bool:
+    def check_next(self, *token_type) -> bool:
         if self.at_end():
             return False
         if self.tokens[self.current + 1].type == TokenType.EOF:
             return False
-        return self.tokens[self.current + 1].type == token_type
+        for t in token_type:
+            if self.tokens[self.current + 1].type == t:
+                return True
+        return False

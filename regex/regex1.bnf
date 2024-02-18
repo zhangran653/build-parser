@@ -12,7 +12,7 @@ CharacterGroup ::= "[" "^"? (CharacterClass | CharacterRange | Char - "]")+ "]"
 
 CharacterClass ::= "\w" | "\W" | "\d" | "\D" | "\s" | "\S"
 
-CharacterRange ::= Char "-" (Char)?
+CharacterRange ::= Char ("-" Char)?
 
 Quantifier ::= ( "*" | "+" | "?" | "{" Integer ( "," Integer? )? "}" ) LazyModifier?
 

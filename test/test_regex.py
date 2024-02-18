@@ -193,6 +193,8 @@ class RegexTest(unittest.TestCase):
         """
         regexes = [
             "^\\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
+            "[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?",
+            "^http://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$"
 
         ]
         for r in regexes:

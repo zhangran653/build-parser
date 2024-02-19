@@ -376,11 +376,10 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self) -> list[Expr]:
-        expressions = []
-        while not self.at_end():
-            expressions.append(self.expression())
-        return expressions
+    def parse(self):
+        if not self.at_end():
+            return self.expression()
+        return None
 
     def expression(self) -> Expression:
         sub_expr = self.subexpression()

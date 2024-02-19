@@ -126,6 +126,7 @@ class Scanner:
                 if next_char == '\0':
                     self.add_token(TokenType.ASCII, char)
                 else:
+
                     if next_char in self.token_map:
                         # TODO
                         self.advance()

@@ -7,53 +7,59 @@ from regex.Scanner import Scanner
 
 
 class RegexTest(unittest.TestCase):
+    def test0(self):
+        s = r'\\['
+        print(f"len :{len(s)}")
+        for i in range(0, len(s)):
+            print(s[i])
+
     def test1(self):
-        scanner = Scanner('')
+        scanner = Scanner(r'')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test2(self):
-        scanner = Scanner('a')
+        scanner = Scanner(r'a')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test3(self):
-        scanner = Scanner('ab+')
+        scanner = Scanner(r'ab+')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test4(self):
-        scanner = Scanner('[]')
+        scanner = Scanner(r'[]')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test5(self):
-        scanner = Scanner('[a-zA-Z]')
+        scanner = Scanner(r'[a-zA-Z]')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test6(self):
-        scanner = Scanner('[a-zA-Z\[]')
+        scanner = Scanner(r'[a-zA-Z\[]')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test7(self):
-        scanner = Scanner('a{3,4}')
+        scanner = Scanner(r'a{3,4}')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test8(self):
-        scanner = Scanner('ad阿松大')
+        scanner = Scanner(r'ad阿松大')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test9(self):
-        scanner = Scanner('\s\\b\w\S\A\Z\G.|')
+        scanner = Scanner(r'\s\\b\w\S\A\Z\G.|')
         tokens = scanner.scan_tokens()
         print(tokens)
 
     def test10(self):
-        scanner = Scanner("")
+        scanner = Scanner(r"")
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         expressions = parser.parse()
@@ -84,35 +90,35 @@ class RegexTest(unittest.TestCase):
         :return:
         """
         regexes = [
-            "^[0-9]*$",
-            "^\\d{4}$",
-            "^\\d{5,}$",
-            "^\\d{3,6}$",
-            "^(0|[1-9][0-9]*)$",
-            "^([1-9][0-9]*)+(.[0-9]{1,2})?$",
-            "^(\\-)?\\d+(\\.\\d{1,2})?$",
-            "^(\\-|\\+)?\\d+(\\.\\d+)?$",
-            "^[0-9]+(.[0-9]{2})?$",
-            "^[0-9]+(.[0-9]{1,3})?$",
-            "^[1-9]\\d*$",
-            "^([1-9][0-9]*){1,3}$",
-            "^\\+?[1-9][0-9]*$",
-            "^\\-[1-9][0-9]*$",
-            "^-[1-9]\\d*$",
-            "^\\d+$",
-            "^[1-9]\\d*|0$",
-            "^-[1-9]\\d*|0$",
-            "^((-\\d+)|(0+))$",
-            "^\\d+(\\.\\d+)?$",
-            "^[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*|0?\\.0+|0$",
-            "^((-\\d+(\\.\\d+)?)|(0+(\\.0+)?))$",
-            "^(-([1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*))|0?\\.0+|0$",
-            "^[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*$",
-            "^(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*))$",
-            "^-([1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*)$",
-            "^(-(([0-9]+\\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\\.[0-9]+)|([0-9]*[1-9][0-9]*)))$",
-            "^(-?\\d+)(\\.\\d+)?$",
-            "^-?([1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*|0?\\.0+|0)$",
+            r"^[0-9]*$",
+            r"^\d{4}$",
+            r"^\d{5,}$",
+            r"^\d{3,6}$",
+            r"^(0|[1-9][0-9]*)$",
+            r"^([1-9][0-9]*)+(.[0-9]{1,2})?$",
+            r"^(\-)?\d+(\.\d{1,2})?$",
+            r"^(\-|\+)?\d+(\.\d+)?$",
+            r"^[0-9]+(.[0-9]{2})?$",
+            r"^[0-9]+(.[0-9]{1,3})?$",
+            r"^[1-9]\d*$",
+            r"^([1-9][0-9]*){1,3}$",
+            r"^\+?[1-9][0-9]*$",
+            r"^\-[1-9][0-9]*$",
+            r"^-[1-9]\d*$",
+            r"^\d+$",
+            r"^[1-9]\d*|0$",
+            r"^-[1-9]\d*|0$",
+            r"^((-\d+)|(0+))$",
+            r"^\d+(\.\d+)?$",
+            r"^[1-9]\d*\.\d*|0\.\d*[1-9]\d*|0?\.0+|0$",
+            r"^((-\d+(\.\d+)?)|(0+(\.0+)?))$",
+            r"^(-([1-9]\d*\.\d*|0\.\d*[1-9]\d*))|0?\.0+|0$",
+            r"^[1-9]\d*\.\d*|0\.\d*[1-9]\d*$",
+            r"^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$",
+            r"^-([1-9]\d*\.\d*|0\.\d*[1-9]\d*)$",
+            r"^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$",
+            r"^(-?\d+)(\.\d+)?$",
+            r"^-?([1-9]\d*\.\d*|0\.\d*[1-9]\d*|0?\.0+|0)$",
             "^[\u4e00-\u9fa5]{0,}$"
         ]
         for r in regexes:
@@ -150,14 +156,14 @@ class RegexTest(unittest.TestCase):
         """
         regexes = [
             "^[\u4e00-\u9fa5]{0,}$",
-            "^[A-Za-z0-9]+$",
-            "^[A-Za-z0-9]{4,40}$",
-            "^.{3,20}$",
-            "^[A-Za-z]+$",
-            "^[A-Z]+$",
-            "^[a-z]+$",
-            "^[A-Za-z0-9]+$",
-            "^\\w+$", "^\\w{3,20}$",
+            r"^[A-Za-z0-9]+$",
+            r"^[A-Za-z0-9]{4,40}$",
+            r"^.{3,20}$",
+            r"^[A-Za-z]+$",
+            r"^[A-Z]+$",
+            r"^[a-z]+$",
+            r"^[A-Za-z0-9]+$",
+            r"^\w+$", "^\w{3,20}$",
             "^[\u4E00-\u9FA5A-Za-z0-9_]+$",
             "^[\u4E00-\u9FA5A-Za-z0-9]+$",
             "^[\u4E00-\u9FA5A-Za-z0-9]{2,20}$",
@@ -217,26 +223,23 @@ class RegexTest(unittest.TestCase):
         :return:
         """
         regexes = [
-            # "^\\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
-            # "[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?",
-            # "^http://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$",
-            # "[a-zA-z]+://[^\s]*",
-            # "^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$",
-            # "^(\\d{3,4}-)|(\\d{3,4}-)?\\d{7,8}$",
-            # "\d{3}-\d{8}|\d{4}-\d{7}",
-            # "^\d{15}|\d{18}$",
-            # "^([0-9]){7,18}(x|X)?$",
-            # "\d{8,18}|[0-9x]{8,18}|[0-9X]{8,18}?$",
-            # "^\s*|\s*$",
-            # "(^\s*)|(\s*$)",
-            "[\\]"
-            #"^(\d{1,4})(-|\/)(\d{1,2})\\2(\d{1,2})$"
-
-
+            r"^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
+            r"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?",
+            r"^http://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?$",
+            r"[a-zA-z]+://[^\s]*",
+            r"^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$",
+            r"^(\d{3,4}-)|(\d{3,4}-)?\d{7,8}$",
+            r"\d{3}-\d{8}|\d{4}-\d{7}",
+            r"^\d{15}|\d{18}$",
+            r"^([0-9]){7,18}(x|X)?$",
+            r"\d{8,18}|[0-9x]{8,18}|[0-9X]{8,18}?$",
+            r"^\s*|\s*$",
+            r"(^\s*)|(\s*$)",
+            r"^(\d{1,4})(-|\\/)(\d{1,2})\\2(\d{1,2})$"
         ]
         for r in regexes:
             print("====")
-            print(f"{r}")
+            print(f"{r}, len:{len(r)}")
             print(':')
             scanner = Scanner(r)
             tokens = scanner.scan_tokens()
@@ -244,7 +247,31 @@ class RegexTest(unittest.TestCase):
             expressions = parser.parse()
             printer = ASTPrinter()
             ret = printer.ast_string(expressions)
-            print(ret)
+            # print(ret)
+            # Parse the JSON string into a Python dictionary
+            parsed_json = json.loads(ret)
+            # Pretty print the JSON
+            pretty_json = json.dumps(parsed_json, indent=2)
+            print(pretty_json)
+            print("====")
+            print()
+
+    def test14(self):
+        regexes = [
+            r"[\w-a-z]",
+            r"[a-zA-Z]",
+        ]
+        for r in regexes:
+            print("====")
+            print(f"{r}, len:{len(r)}")
+            print(':')
+            scanner = Scanner(r)
+            tokens = scanner.scan_tokens()
+            parser = Parser(tokens)
+            expressions = parser.parse()
+            printer = ASTPrinter()
+            ret = printer.ast_string(expressions)
+            # print(ret)
             # Parse the JSON string into a Python dictionary
             parsed_json = json.loads(ret)
             # Pretty print the JSON

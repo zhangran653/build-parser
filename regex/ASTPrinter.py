@@ -44,7 +44,7 @@ class ASTPrinter(Visitor):
         return f'{{"type":"CharClassAnyWhiteSpaceInv","token":"{expr.value.value}" }}'
 
     def visit_character_range(self, expr: CharRange):
-        return f'{{"type":"CharacterRange","from":"{expr.start.value}","to":"{expr.to.value if expr.to else "null"}" }}'
+        return f'{{"type":"CharacterRange","from":"{self.escape_json_string(expr.start.value)}","to":"{self.escape_json_string(expr.to.value) if expr.to else "null"}" }}'
 
     def visit_backreference(self, expr: Backreference):
         return f'{{"type":"Backreference","token":"{expr.number.value}"}}'
@@ -53,7 +53,7 @@ class ASTPrinter(Visitor):
         return f'{{"type":"MatchAnyCharacter","token":"."}}'
 
     def visit_character(self, expr: Character):
-        return f'{{"type":"Character","token":"{expr.token.value}"}}'
+        return f'{{"type":"Character","token":"{self.escape_json_string(expr.token.value)}"}}'
 
     def visit_range_quantifier(self, expr: RangeQuantifier):
         return f'{{"type":"RangeQuantifier","low_bound":{expr.low_bound},"fixed_bound":{1 if expr.fixed_bound else 0}, "up_bound":{expr.up_bound if expr.up_bound else "null"} }}'
@@ -91,8 +91,20 @@ class ASTPrinter(Visitor):
     def visit_anchor_pre_match_end(self, expr):
         return f'{{"type":"AnchorPreviousMatchEnd","token":"\\G"}}'
 
-    def ast_string(self, exprs):
-        ret = []
-        for x in exprs:
-            ret.append(x.accept(self))
-        return f'[{",".join(x for x in ret)}]'
+    @staticmethod
+    def escape_json_string(s: str) -> str:
+        escaped_string = ""
+        for char in s:
+            if char == '\\':
+                escaped_string += '\\\\'
+            elif char == '"':
+                escaped_string += '\\"'
+            # Add more conditions here for other special characters as needed.
+            else:
+                escaped_string += char
+        return escaped_string
+
+    def ast_string(self, exprs: Expression):
+        if exprs:
+            return exprs.accept(self)
+        return "[]"

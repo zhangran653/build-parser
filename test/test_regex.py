@@ -2,6 +2,7 @@ import json
 import unittest
 
 from regex.ASTPrinter import ASTPrinter
+from regex.EngineNFA import EngineNFA, CharacterMatcher, EpsilonMatcher
 from regex.Parser import Parser
 from regex.Scanner import Scanner
 
@@ -280,3 +281,24 @@ class RegexTest(unittest.TestCase):
             print(pretty_json)
             print("====")
             print()
+
+    def test15(self):
+        nfa = EngineNFA()
+        nfa.add_states("q0", "q1", "q2", "q3")
+        nfa.initial_state = "q0"
+        nfa.ending_states = ["q2"]
+
+        """                -b-
+                          \  /
+           q0 -a-> q1 -b-> q2 -eps-> q3
+        
+        """
+        nfa.add_transition("q0", "q1", CharacterMatcher("a"))
+        nfa.add_transition("q1", "q2", CharacterMatcher("b"))
+        nfa.add_transition("q2", "q2", CharacterMatcher("b"))
+        nfa.add_transition("q2", "q3", EpsilonMatcher())
+
+        print(nfa.compute("abbbb"))
+        print(nfa.compute("aabbbb"))
+        print(nfa.compute("ab"))
+        print(nfa.compute("a"))

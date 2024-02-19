@@ -302,3 +302,18 @@ class RegexTest(unittest.TestCase):
         print(nfa.compute("aabbbb"))
         print(nfa.compute("ab"))
         print(nfa.compute("a"))
+
+    def test16(self):
+        nfa = EngineNFA()
+        nfa.add_states("q0", "q1", "q2")
+        nfa.initial_state = "q0"
+        nfa.ending_states = ["q2"]
+        """                
+                         \^ε^/       
+                   q0 -a-> q1 -b-> q2
+
+        """
+        nfa.add_transition("q0", "q1", CharacterMatcher("a"))
+        nfa.add_transition("q1", "q1", EpsilonMatcher())
+        nfa.add_transition("q1", "q2", CharacterMatcher("b"))
+        print(nfa.compute("abc"))

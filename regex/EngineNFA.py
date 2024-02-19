@@ -83,40 +83,32 @@ class EngineNFA:
 
     def compute(self, string: str):
         # (current position of string, current state, visited states through epsilon)
-        stack = [(0, self.states[self.initial_state])]
+        stack = [(0, self.states[self.initial_state], set())]
         # push initial state. the i is current position of string
         while len(stack) > 0:
-            i, current_state = stack.pop()
+            i, current_state, visited = stack.pop()
             if current_state.name in self.ending_states:
                 return True
+            # TODO
             if i > len(string) - 1:
                 return False
             char = string[i]
 
-            """
-            if (matcher.matches(input, i)) { 
-                            // The memory has to be immutable. This is the simplest way to make a deep copy of 
-                            // an object with only primitive values
-                const copyMemory = JSON.parse(JSON.stringify(memory));
-                if (matcher.isEpsilon()) {
-                    // Don't follow the transition. We already have been in that state
-                    if (memory.EPSILON_VISITED.includes(toState.name))
-                        continue;
-                    // Remember that you made this transition
-                    copyMemory.EPSILON_VISITED.push(currentState.name);
-                } else {
-                    // We are transversing a non-epsilon transition, so reset the visited counter
-                    copyMemory.EPSILON_VISITED = [];
-                }
-                // Reminder: Epsilon transitions don't consume input
-                const nextI = matcher.isEpsilon() ? i : i+1;
-                stack.push({i: nextI, currentState: toState, memory: copyMemory});
-            }
-            """
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
                 if matcher.matches(char):
+                    # copy visited
+                    cp = set(visited)
+                    if matcher.is_epsilon:
+                        # Don't follow the transition. Already have been in that state
+                        if to_state.name in visited:
+                            continue
+                        # Remember that made this transition
+                        cp.add(current_state.name)
+                    else:
+                        # transversing a non-epsilon transition, reset the visited counter
+                        cp = set()
                     next_i = i if matcher.is_epsilon() else i + 1
-                    stack.append((next_i, to_state))
+                    stack.append((next_i, to_state, cp))
 
         return False

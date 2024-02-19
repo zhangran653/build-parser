@@ -128,7 +128,6 @@ class Scanner:
                 else:
 
                     if next_char in self.token_map:
-                        # TODO
                         self.advance()
                         self.add_token(TokenType.ASCII, next_char)
                     elif next_char in self.escape_map:

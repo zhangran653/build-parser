@@ -260,6 +260,7 @@ class RegexTest(unittest.TestCase):
         regexes = [
             r"[\w-a-z]",
             r"[a-zA-Z]",
+            # r"[z-a]",
         ]
         for r in regexes:
             print("====")

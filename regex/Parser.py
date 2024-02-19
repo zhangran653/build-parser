@@ -582,6 +582,8 @@ class Parser:
         self.consume(TokenType.MINUS, "")
         self.advance()
         cr.to = self.previous()
+        if ord(cr.start.value) > ord(cr.to.value):
+            raise ValueError(f"{cr.to}: character range is out of order,{cr.start.value}-{cr.to.value}")
         return cr
 
     def char_class(self):

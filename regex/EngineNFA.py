@@ -98,11 +98,11 @@ class EngineNFA:
                 matcher, to_state = current_state.transitions[c]
                 if matcher.matches(char):
                     # copy visited
-                    cp = set(visited)
                     if matcher.is_epsilon:
                         # Don't follow the transition. Already have been in that state
                         if to_state.name in visited:
                             continue
+                        cp = set(visited)
                         # Remember that made this transition
                         cp.add(current_state.name)
                     else:

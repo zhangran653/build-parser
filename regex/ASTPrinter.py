@@ -25,7 +25,8 @@ class ASTPrinter(Visitor):
         return f'{{' \
                f'   "type":"Group",' \
                f'   "expression":{expr.expression.accept(self)} ,' \
-               f'   "non_capturing": {1 if expr.non_capturing else 0} ' \
+               f'   "non_capturing": {1 if expr.non_capturing else 0}, ' \
+               f'   "group_name": "{expr.group_name if expr.group_name else "null"}" ' \
                f'}}'
 
     def visit_match(self, expr: Match):

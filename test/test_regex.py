@@ -327,11 +327,11 @@ class RegexTest(unittest.TestCase):
             print(g)
 
     def test17(self):
-        nfa = NFARegex(r"(a|b)+c*")
+        nfa = NFARegex(r"(?<g1>a|b)+c*")
         print(nfa.nfa)
         printer = ASTPrinter()
         ret = printer.ast_string(nfa.ast)
-        # print(ret)
+        print(ret)
         # Parse the JSON string into a Python dictionary
         parsed_json = json.loads(ret)
         # Pretty print the JSON
@@ -399,7 +399,7 @@ class RegexTest(unittest.TestCase):
         self.print_groups(nfa)
 
     def test19(self):
-        nfa = NFARegex("(a|b)+c")
+        nfa = NFARegex("(?<g1>a|b)+c")
 
         assert not nfa.compute("a")
         self.print_groups(nfa)

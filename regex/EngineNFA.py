@@ -155,13 +155,12 @@ class EngineNFA:
 
     def compute(self, string: str) -> list[Group]:
         # (current position of string, current state, visited states through epsilon,group map)
-        groups = {}
-        stack = [(0, self.states[self.initial_state], set(), groups)]
+        stack = [(0, self.states[self.initial_state], set(), {})]
         # push initial state. the i is current position of string
         while len(stack) > 0:
-            i, current_state, visited, group = stack.pop()
+            i, current_state, visited, groups = stack.pop()
             # group is a right-open interval [l, r)
-            self.compute_groups(current_state, group, i)
+            self.compute_groups(current_state, groups, i)
             if current_state.name in self.ending_states:
                 for k, v in groups.items():
                     if v[1] is not None:
@@ -184,6 +183,6 @@ class EngineNFA:
                         # transversing a non-epsilon transition, reset the visited counter
                         cp = set()
                     next_i = i if matcher.is_epsilon() else i + 1
-                    stack.append((next_i, to_state, cp, group))
+                    stack.append((next_i, to_state, cp, groups))
         self.groups = []
         return self.groups

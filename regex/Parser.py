@@ -133,9 +133,10 @@ class CharRange(Expr):
 
 
 class Group(Expr):
-    def __init__(self, expression: Expression, non_capturing=False):
+    def __init__(self, expression: Expression, non_capturing=False, group_name: str = None):
         self.expression = expression
         self.non_capturing = non_capturing
+        self.group_name = group_name
 
     def accept(self, visitor):
         return visitor.visit_group(self)
@@ -345,6 +346,8 @@ CHAR_NO_RIGHT_BRACKET = [
     TokenType.LEFT_BRACE,
     TokenType.COMMA,
     TokenType.COLON,
+    TokenType.LESS,
+    TokenType.GREAT,
     TokenType.MINUS,
     TokenType.INT,
     TokenType.LETTER,
@@ -493,22 +496,40 @@ class Parser:
 
     def group(self):
         """
-        Group ::= "(" ( "?:" )? Expression ")" Quantifier?
+        Group ::= "(" ( "?:" | "?<" (Letters | Integer)+ ">" )? Expression ")" Quantifier?
         :return:
         """
         non_capturing = False
+        group_name = None
         if self.check(TokenType.QUESTION) and self.check_next(TokenType.COLON):
             self.consume(TokenType.QUESTION, "")
             self.consume(TokenType.COLON, "")
             non_capturing = True
+        elif self.check(TokenType.QUESTION) and self.check_next(TokenType.LESS):
+            self.consume(TokenType.QUESTION, "")
+            self.consume(TokenType.LESS, "")
+            group_name = self.group_name()
 
         expr = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "expect ')' at group end")
-        g = Group(expr, non_capturing)
+        g = Group(expr, non_capturing, group_name)
         if self.match(*QUANTIFIER):
             return self.quantifier(g)
         return g
 
+    def group_name(self) -> str:
+        """
+        (Letters | Integer)+ ">"
+        :return:
+        """
+        name = ''
+        while self.match(TokenType.LETTER, TokenType.INT):
+            name = f'{name}{self.previous().value}'
+        if len(name) == 0:
+            raise ValueError(f"{self.peek()} not expected. expect letter or integer for group name")
+        self.consume(TokenType.GREAT, "expect '>' for end of group name")
+        return name
+    
     def anchor(self):
         """
         Anchor ::= "^" | "\b" | "\B" | "\A" | "\z" | "\Z" | "\G" | "$"

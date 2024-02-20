@@ -1,3 +1,5 @@
+from typing import List
+
 from regex.Interpreter import Interpreter
 from regex.Parser import Parser, Group
 from regex.Scanner import Scanner
@@ -11,6 +13,6 @@ class NFARegex:
         self.nfa = None if self.ast is None else Interpreter(self.ast).build_nfa()
         self.groups = []
 
-    def compute(self, string: str) -> list[Group]:
+    def compute(self, string: str) -> List[Group]:
         self.groups = self.nfa.compute(string) if self.nfa else []
         return self.groups

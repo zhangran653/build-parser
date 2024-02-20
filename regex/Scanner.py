@@ -1,5 +1,7 @@
 from enum import Enum, auto
 
+from typing import List
+
 
 class TokenType(Enum):
     # single token
@@ -93,7 +95,7 @@ class Scanner:
             'G': TokenType.PRE_MATCH_END
         }
 
-    def scan_tokens(self) -> list[Token]:
+    def scan_tokens(self) -> List[Token]:
         while not self.is_end():
             self.start = self.current
             self._scan_token()

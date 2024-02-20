@@ -49,8 +49,8 @@ class State:
     def __init__(self, name):
         self.name = name
         self.transitions = []
-        self.startGroups = []
-        self.endGroups = []
+        self.start_groups = []
+        self.end_groups = []
 
     def add_transition(self, toState: State, matcher: Matcher):
         self.transitions.append([matcher, toState])
@@ -91,6 +91,10 @@ class EngineNFA:
 
     def add_transition_to_first(self, fromStateName: str, toStateName: str, matcher: Matcher):
         self.states[fromStateName].add_first_transition(self.states[toStateName], matcher)
+
+    def add_group(self, start_state: str, end_state: str, group: int):
+        self.states[start_state].start_groups.append(group)
+        self.states[end_state].start_groups.append(group)
 
     def append_nfa(self, other: EngineNFA, joint_state: str) -> EngineNFA:
         """

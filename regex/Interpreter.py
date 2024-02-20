@@ -22,6 +22,16 @@ class StateNameGenerator:
         self.id = 0
 
 
+class GroupNameGenerator:
+    def __init__(self):
+        self.id = 0
+
+    def next(self):
+        name = self.id
+        self.id += 1
+        return name
+
+
 class Symbol:
     def __init__(self, char: str = None):
         self.char = char
@@ -46,6 +56,7 @@ class Interpreter(Visitor):
     def __init__(self, ast: Expression):
         self.ast = ast
         self.sg = StateNameGenerator()
+        self.gg = GroupNameGenerator()
         self.nfa = None
 
     def build_nfa(self):
@@ -217,14 +228,19 @@ class Interpreter(Visitor):
         if lazy:
             # adds a transition to first transition gives it the max priority
             nfa.add_transition_to_first(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
-        nfa.add_transition(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
+        else:
+            nfa.add_transition(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
         return nfa
 
     def visit_expression(self, expr: Expression) -> EngineNFA:
+        # by default the root of the tree is a group
+        group = self.gg.next()
         if expr.alternation:
-            return self._alternative_nfa(expr.subexpression.accept(self), expr.alternation.accept(self))
+            nfa = self._alternative_nfa(expr.subexpression.accept(self), expr.alternation.accept(self))
         else:
-            return expr.subexpression.accept(self)
+            nfa = expr.subexpression.accept(self)
+        nfa.add_group(nfa.initial_state, nfa.ending_states[0], group)
+        return nfa
 
     def visit_subexpression(self, expr: SubExpression) -> EngineNFA:
         """
@@ -242,8 +258,12 @@ class Interpreter(Visitor):
         return reduce(lambda nfa1, nfa2: nfa1.append_nfa(nfa2, nfa1.ending_states[0]), item_nfa)
 
     def visit_group(self, expr: Group) -> EngineNFA:
-        # TODO capturing
-        return expr.expression.accept(self)
+        nfa = expr.expression.accept(self)
+        if expr.non_capturing:
+            return nfa
+        group = self.gg.next()
+        nfa.add_group(nfa.initial_state, nfa.ending_states[0], group)
+        return nfa
 
     def visit_match(self, expr: Match) -> EngineNFA:
         return expr.match_item.accept(self)

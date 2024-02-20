@@ -263,7 +263,7 @@ class RegexTest(unittest.TestCase):
             r"[a-zA-Z]",
             r"<(.+?)>",
             r"<([^>]+?)>"
-            # r"[z-a]",
+            r"a",
         ]
         for r in regexes:
             print("====")

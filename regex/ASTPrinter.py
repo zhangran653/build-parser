@@ -25,14 +25,12 @@ class ASTPrinter(Visitor):
         return f'{{' \
                f'   "type":"Group",' \
                f'   "expression":{expr.expression.accept(self)} ,' \
-               f'   "non_capturing": {1 if expr.non_capturing else 0}, ' \
-               f'   "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"} ' \
+               f'   "non_capturing": {1 if expr.non_capturing else 0} ' \
                f'}}'
 
     def visit_match(self, expr: Match):
         return f'{{' \
                f'   "type":"Match",' \
-               f'   "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"}, ' \
                f'   "match_item":{expr.match_item.accept(self)} ' \
                f'}}'
 
@@ -107,6 +105,7 @@ class ASTPrinter(Visitor):
     def visit_range_quantifier(self, expr: RangeQuantifier):
         return f'{{' \
                f'   "type":"RangeQuantifier",' \
+               f'   "expression":{expr.expr.accept(self)},' \
                f'   "low_bound":{expr.low_bound},' \
                f'   "fixed_bound":{1 if expr.fixed_bound else 0},' \
                f'   "up_bound":{expr.up_bound if expr.up_bound else "null"}, ' \
@@ -116,21 +115,21 @@ class ASTPrinter(Visitor):
     def visit_zero_or_more_quantifier(self, expr: ZeroOrMoreQuantifier):
         return f'{{' \
                f'   "type":"ZeroOrMoreQuantifier",' \
-               f'   "token":"*", ' \
+               f'   "expression":{expr.expr.accept(self)}, ' \
                f'   "lazy": {1 if expr.lazy else 0}' \
                f'}}'
 
     def visit_one_or_more_quantifier(self, expr: OneOrMoreQuantifier):
         return f'{{' \
                f'   "type":"OneOrMoreQuantifier",' \
-               f'   "token":"+",' \
+               f'   "expression":{expr.expr.accept(self)},' \
                f'   "lazy": {1 if expr.lazy else 0} ' \
                f'}}'
 
     def visit_zero_or_one_quantifier(self, expr: ZeroOrOneQuantifier):
         return f'{{' \
                f'   "type":"ZeroOrOneQuantifier",' \
-               f'   "token":"?", ' \
+               f'   "expression":{expr.expr.accept(self)}, ' \
                f'   "lazy": {1 if expr.lazy else 0} ' \
                f'}}'
 

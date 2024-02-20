@@ -81,6 +81,34 @@ class EngineNFA:
     def add_transition_to_first(self, fromStateName: str, toStateName: str, matcher: Matcher):
         self.states[fromStateName].add_first_transition(self.states[toStateName], matcher)
 
+    def append_nfa(self, other: EngineNFA, joint_state: str) -> EngineNFA:
+        """
+        Concatenate 2 nfa. concat this nfa's joint_state ot other naf's initial state.This will destruct the
+        other nfa's initial state and may change this nfa's ending states.
+
+        :param other:
+        :param joint_state:
+        :return:
+        """
+        # 1. copy the states of other nfa to this nfa
+        for n, s in other.states:
+            self.states[n] = s
+
+        # 2. remove init states of other nfa
+        del self.states[other.initial_state]
+
+        # 3. all the outward transitions of 'other.initialState' now belong to 'joint_state'
+        for matcher, to_state in other.states[other.initial_state].transitions:
+            self.add_transition(joint_state, to_state.name, matcher)
+
+        # 4. if the joint_state is an end state,
+        #  then the end states of the appended nfa are also end states of the fusion.
+        if joint_state in self.ending_states:
+            self.ending_states.remove(joint_state)
+            self.ending_states.append(*other.ending_states)
+
+        return self
+
     def compute(self, string: str):
         # (current position of string, current state, visited states through epsilon)
         stack = [(0, self.states[self.initial_state], set())]

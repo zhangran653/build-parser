@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from regex.Scanner import Token
 from regex.Scanner import TokenType
 
@@ -92,7 +94,7 @@ class Visitor:
 
 
 class Expression(Expr):
-    def __init__(self, subexpression, alternation=None):
+    def __init__(self, subexpression: SubExpression, alternation: Expression = None):
         self.subexpression = subexpression
         self.alternation = alternation
 
@@ -109,9 +111,8 @@ class SubExpression(Expr):
 
 
 class Match(Expr):
-    def __init__(self, match_item, quantifier=None):
+    def __init__(self, match_item: Expr):
         self.match_item = match_item
-        self.quantifier = quantifier
 
     def accept(self, visitor):
         return visitor.visit_match(self)
@@ -132,10 +133,9 @@ class CharRange(Expr):
 
 
 class Group(Expr):
-    def __init__(self, expression, non_capturing=False, quantifier=None):
+    def __init__(self, expression: Expression, non_capturing=False):
         self.expression = expression
         self.non_capturing = non_capturing
-        self.quantifier = quantifier
 
     def accept(self, visitor):
         return visitor.visit_group(self)
@@ -215,7 +215,8 @@ class Character(Expr):
 
 
 class RangeQuantifier(Expr):
-    def __init__(self, low_bound: int, up_bound: int = None, fixed_bound=True, lazy=False):
+    def __init__(self, expr: Expr, low_bound: int, up_bound: int = None, fixed_bound=True, lazy=False):
+        self.expr = expr
         self.low_bound = low_bound
         self.up_bound = up_bound
         # {n} is fixed low bound,fixed. {n,} is >= low bound, not fixed
@@ -227,8 +228,8 @@ class RangeQuantifier(Expr):
 
 
 class ZeroOrMoreQuantifier(Expr):
-    def __init__(self, token: Token, lazy=False):
-        self.token = token
+    def __init__(self, expr: Expr, lazy=False):
+        self.expr = expr
         self.lazy = lazy
 
     def accept(self, visitor):
@@ -236,8 +237,8 @@ class ZeroOrMoreQuantifier(Expr):
 
 
 class OneOrMoreQuantifier(Expr):
-    def __init__(self, token: Token, lazy=False):
-        self.token = token
+    def __init__(self, expr: Expr, lazy=False):
+        self.expr = expr
         self.lazy = lazy
 
     def accept(self, visitor):
@@ -245,8 +246,8 @@ class OneOrMoreQuantifier(Expr):
 
 
 class ZeroOrOneQuantifier(Expr):
-    def __init__(self, token: Token, lazy=False):
-        self.token = token
+    def __init__(self, expr: Expr, lazy=False):
+        self.expr = expr
         self.lazy = lazy
 
     def accept(self, visitor):
@@ -441,7 +442,7 @@ class Parser:
             item = self.char()
         match = Match(item)
         if self.match(*QUANTIFIER):
-            match.quantifier = self.quantifier()
+            return self.quantifier(match)
         return match
 
     def any_char(self) -> AnyChar:
@@ -451,7 +452,7 @@ class Parser:
         """
         return AnyChar()
 
-    def quantifier(self):
+    def quantifier(self, expr: Expr):
         """
         Quantifier ::= ( "*" | "+" | "?" | "{" Integer+ ( "," Integer* )? "}" ) LazyModifier?
         :return:
@@ -464,7 +465,7 @@ class Parser:
             while self.match(TokenType.INT):
                 low_bound = self.previous()
                 low = low * 10 + int(low_bound.value)
-            rq = RangeQuantifier(low)
+            rq = RangeQuantifier(expr, low)
 
             if self.match(TokenType.COMMA):
                 rq.fixed_bound = False
@@ -480,11 +481,11 @@ class Parser:
             self.consume(TokenType.RIGHT_BRACE, "expect '}' for range quantifier ends")
             expr = rq
         elif token.type == TokenType.STAR:
-            expr = ZeroOrMoreQuantifier(token)
+            expr = ZeroOrMoreQuantifier(expr)
         elif token.type == TokenType.PLUS:
-            expr = OneOrMoreQuantifier(token)
+            expr = OneOrMoreQuantifier(expr)
         else:
-            expr = ZeroOrOneQuantifier(token)
+            expr = ZeroOrOneQuantifier(expr)
 
         if self.match(TokenType.QUESTION):
             expr.lazy = True
@@ -505,8 +506,7 @@ class Parser:
         self.consume(TokenType.RIGHT_PAREN, "expect ')' at group end")
         g = Group(expr, non_capturing)
         if self.match(*QUANTIFIER):
-            q = self.quantifier()
-            g.quantifier = q
+            return self.quantifier(g)
         return g
 
     def anchor(self):

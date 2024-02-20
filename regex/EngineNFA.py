@@ -66,11 +66,28 @@ class State:
         return self.__repr__()
 
 
+class Group:
+    def __init__(self, gid: int, pos_s: int, pos_e: int, substring: str, name: str = None):
+        self.gid = gid
+        self.pos_s = pos_s
+        self.pos_e = pos_e
+        self.substring = substring
+        self.name = name
+
+    def __repr__(self):
+        return f'Group {self.gid}: {self.substring}\n' \
+               f'Pos: [{self.pos_s}-{self.pos_e}] '
+
+    def __str__(self):
+        return self.__repr__()
+
+
 class EngineNFA:
     def __init__(self):
         self.states = {}
         self.initial_state = None
         self.ending_states = []
+        self.groups = []
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
@@ -94,7 +111,7 @@ class EngineNFA:
 
     def add_group(self, start_state: str, end_state: str, group: int):
         self.states[start_state].start_groups.append(group)
-        self.states[end_state].start_groups.append(group)
+        self.states[end_state].end_groups.append(group)
 
     def append_nfa(self, other: EngineNFA, joint_state: str) -> EngineNFA:
         """
@@ -116,6 +133,12 @@ class EngineNFA:
         for matcher, to_state in other.states[other.initial_state].transitions:
             self.add_transition(joint_state, to_state.name, matcher)
 
+        # move groups
+        for g in other.states[other.initial_state].start_groups:
+            self.states[joint_state].start_groups.append(g)
+        for g in other.states[other.initial_state].end_groups:
+            self.states[joint_state].end_groups.append(g)
+
         # 4. if the joint_state is an end state,
         #  then the end states of the appended nfa are also end states of the fusion.
         if joint_state in self.ending_states:
@@ -124,18 +147,27 @@ class EngineNFA:
 
         return self
 
-    def compute(self, string: str):
-        # (current position of string, current state, visited states through epsilon)
-        stack = [(0, self.states[self.initial_state], set())]
+    def compute_groups(self, state: State, group: map[int:list[int, int]], pos: int):
+        for g in state.start_groups:
+            group[g] = [pos, None]
+        for g in state.end_groups:
+            group[g][1] = pos
+
+    def compute(self, string: str) -> list[Group]:
+        # (current position of string, current state, visited states through epsilon,group map)
+        groups = {}
+        stack = [(0, self.states[self.initial_state], set(), groups)]
         # push initial state. the i is current position of string
         while len(stack) > 0:
-            i, current_state, visited = stack.pop()
+            i, current_state, visited, group = stack.pop()
+            # group is a right-open interval [l, r)
+            self.compute_groups(current_state, group, i)
             if current_state.name in self.ending_states:
-                return True
-            # TODO
-            if i > len(string) - 1:
-                return True
-            char = string[i]
+                for k, v in groups.items():
+                    if v[1] is not None:
+                        self.groups.insert(k, Group(k, v[0], v[1], string[v[0]:v[1]]))
+                return self.groups
+            char = string[i] if i <= len(string) - 1 else None
 
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
@@ -152,6 +184,6 @@ class EngineNFA:
                         # transversing a non-epsilon transition, reset the visited counter
                         cp = set()
                     next_i = i if matcher.is_epsilon() else i + 1
-                    stack.append((next_i, to_state, cp))
-
-        return False
+                    stack.append((next_i, to_state, cp, group))
+        self.groups = []
+        return self.groups

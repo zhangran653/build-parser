@@ -321,6 +321,11 @@ class RegexTest(unittest.TestCase):
         nfa.add_transition("q1", "q2", CharacterMatcher("b"))
         print(nfa.compute("abc"))
 
+    def print_groups(self, nfa: NFARegex):
+        print(f"{nfa.source}: ")
+        for g in nfa.groups:
+            print(g)
+
     def test17(self):
         nfa = NFARegex(r"(a|b)+c*")
         print(nfa.nfa)
@@ -334,22 +339,39 @@ class RegexTest(unittest.TestCase):
         print(pretty_json)
 
         assert nfa.compute("abababababacccc")
+        self.print_groups(nfa)
         assert not nfa.compute("caaaabbbab")
+        self.print_groups(nfa)
         assert nfa.compute("bb")
+        self.print_groups(nfa)
         assert nfa.compute("aaaaaaa")
+        self.print_groups(nfa)
         assert nfa.compute("a")
+        self.print_groups(nfa)
         assert nfa.compute("b")
+        self.print_groups(nfa)
         assert nfa.compute("bbbbbb")
+        self.print_groups(nfa)
         assert nfa.compute("ab")
+        self.print_groups(nfa)
         assert nfa.compute("ba")
+        self.print_groups(nfa)
         assert nfa.compute("ac")
+        self.print_groups(nfa)
         assert nfa.compute("acccc")
+        self.print_groups(nfa)
         assert nfa.compute("bc")
+        self.print_groups(nfa)
         assert nfa.compute("bcccc")
+        self.print_groups(nfa)
         assert not nfa.compute("c")
+        self.print_groups(nfa)
         assert not nfa.compute("ca")
+        self.print_groups(nfa)
         assert not nfa.compute("cb")
+        self.print_groups(nfa)
         assert not nfa.compute("x")
+        self.print_groups(nfa)
 
     def test18(self):
         nfa = NFARegex("a+c?b+")
@@ -364,9 +386,29 @@ class RegexTest(unittest.TestCase):
         print(pretty_json)
 
         assert nfa.compute("aaaaacbbbbbb")
+        self.print_groups(nfa)
         assert not nfa.compute("accb")
+        self.print_groups(nfa)
         assert nfa.compute("ab")
+        self.print_groups(nfa)
         assert nfa.compute("aabb")
+        self.print_groups(nfa)
         assert nfa.compute("aacbb")
+        self.print_groups(nfa)
         assert not nfa.compute("cb")
+        self.print_groups(nfa)
 
+    def test19(self):
+        nfa = NFARegex("(a|b)+c")
+
+        assert not nfa.compute("a")
+        self.print_groups(nfa)
+        assert nfa.compute("aac")
+        self.print_groups(nfa)
+        assert not nfa.compute("c")
+        self.print_groups(nfa)
+
+    def test20(self):
+        nfa = NFARegex("((?:a|b)+)(cd)")
+        assert nfa.compute("bbaacd")
+        self.print_groups(nfa)

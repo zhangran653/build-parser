@@ -31,6 +31,9 @@ class GroupNameGenerator:
         self.id += 1
         return name
 
+    def reset(self):
+        self.id = 0
+
 
 class Symbol:
     def __init__(self, char: str = None):
@@ -60,7 +63,12 @@ class Interpreter(Visitor):
         self.nfa = None
 
     def build_nfa(self):
+        self.sg.reset()
+        self.gg.reset()
+        # by default the root of the tree is a group
+        group = self.gg.next()
         self.nfa = self.ast.accept(self)
+        self.nfa.add_group(self.nfa.initial_state, self.nfa.ending_states[0], group)
         return self.nfa
 
     def _next_id(self) -> str:
@@ -233,13 +241,10 @@ class Interpreter(Visitor):
         return nfa
 
     def visit_expression(self, expr: Expression) -> EngineNFA:
-        # by default the root of the tree is a group
-        group = self.gg.next()
         if expr.alternation:
             nfa = self._alternative_nfa(expr.subexpression.accept(self), expr.alternation.accept(self))
         else:
             nfa = expr.subexpression.accept(self)
-        nfa.add_group(nfa.initial_state, nfa.ending_states[0], group)
         return nfa
 
     def visit_subexpression(self, expr: SubExpression) -> EngineNFA:

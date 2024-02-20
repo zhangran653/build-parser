@@ -215,35 +215,39 @@ class Character(Expr):
 
 
 class RangeQuantifier(Expr):
-    def __init__(self, low_bound: int, up_bound: int = None, fixed_bound=True):
+    def __init__(self, low_bound: int, up_bound: int = None, fixed_bound=True, lazy=False):
         self.low_bound = low_bound
         self.up_bound = up_bound
         # {n} is fixed low bound,fixed. {n,} is >= low bound, not fixed
         self.fixed_bound = fixed_bound
+        self.lazy = lazy
 
     def accept(self, visitor):
         return visitor.visit_range_quantifier(self)
 
 
 class ZeroOrMoreQuantifier(Expr):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, lazy=False):
         self.token = token
+        self.lazy = lazy
 
     def accept(self, visitor):
         return visitor.visit_zero_or_more_quantifier(self)
 
 
 class OneOrMoreQuantifier(Expr):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, lazy=False):
         self.token = token
+        self.lazy = lazy
 
     def accept(self, visitor):
         return visitor.visit_one_or_more_quantifier(self)
 
 
 class ZeroOrOneQuantifier(Expr):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, lazy=False):
         self.token = token
+        self.lazy = lazy
 
     def accept(self, visitor):
         return visitor.visit_zero_or_one_quantifier(self)

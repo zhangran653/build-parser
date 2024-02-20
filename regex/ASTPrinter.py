@@ -1,92 +1,186 @@
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
-    CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted
+    CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
+    ZeroOrOneQuantifier, OneOrMoreQuantifier, ZeroOrMoreQuantifier
 
 
 class ASTPrinter(Visitor):
 
     def visit_expression(self, expr: Expression):
         if expr.alternation:
-            return f'{{"type":"Alternation","subexpression":{expr.subexpression.accept(self)}, "alternation": {expr.alternation.accept(self)} }}'
+            return f'{{' \
+                   f'   "type":"Alternation",' \
+                   f'   "subexpression":{expr.subexpression.accept(self)}, ' \
+                   f'   "alternation": {expr.alternation.accept(self)} ' \
+                   f'}}'
         return expr.subexpression.accept(self)
 
     def visit_subexpression(self, expr: SubExpression):
-        return f'{{ "type":"Concat", "expressions": [{",".join(x.accept(self) for x in expr.items)}] }}'
+        return f'{{' \
+               f'   "type":"Concat", ' \
+               f'   "expressions": [{",".join(x.accept(self) for x in expr.items)}]' \
+               f'}}'
 
     def visit_group(self, expr: Group):
-        return f'{{"type":"Group","expression":{expr.expression.accept(self)} ,"non_capturing": {1 if expr.non_capturing else 0}, "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"} }}'
+        return f'{{' \
+               f'   "type":"Group",' \
+               f'   "expression":{expr.expression.accept(self)} ,' \
+               f'   "non_capturing": {1 if expr.non_capturing else 0}, ' \
+               f'   "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"} ' \
+               f'}}'
 
     def visit_match(self, expr: Match):
-        return f'{{"type":"Match","quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"}, "match_item":{expr.match_item.accept(self)} }}'
+        return f'{{' \
+               f'   "type":"Match",' \
+               f'   "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"}, ' \
+               f'   "match_item":{expr.match_item.accept(self)} ' \
+               f'}}'
 
     def visit_character_group(self, expr: CharacterGroup):
-        return f'{{"type":"CharacterGroup","negative":"{expr.negative}","items":[{",".join(x.accept(self) for x in expr.items)}] }}'
+        return f'{{' \
+               f'   "type":"CharacterGroup",' \
+               f'   "negative":{1 if expr.negative else 0},' \
+               f'   "items":[{",".join(x.accept(self) for x in expr.items)}]' \
+               f'}}'
 
     def visit_char_class_any_word(self, expr: CharClassAnyWord):
-        return f'{{"type":"CharClassAnyWord","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyWord",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_char_class_any_word_inv(self, expr: CharClassAnyWordInverted):
-        return f'{{"type":"CharClassAnyWordInv","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyWordInv",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_char_class_any_digit(self, expr: CharClassAnyDecimalDigit):
-        return f'{{"type":"CharClassAnyDigit","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyDigit",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_char_class_any_digit_inv(self, expr: CharClassAnyDecimalDigitInverted):
-        return f'{{"type":"CharClassAnyDigitInv","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyDigitInv",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_char_class_any_white_space(self, expr: CharClassAnyWhitespace):
-        return f'{{"type":"CharClassAnyWhiteSpace","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyWhiteSpace",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_char_class_any_white_space_inv(self, expr: CharClassAnyWhitespaceInverted):
-        return f'{{"type":"CharClassAnyWhiteSpaceInv","token":"{expr.value.value}" }}'
+        return f'{{' \
+               f'   "type":"CharClassAnyWhiteSpaceInv",' \
+               f'   "token":"{expr.value.value}" ' \
+               f'}}'
 
     def visit_character_range(self, expr: CharRange):
-        return f'{{"type":"CharacterRange","from":"{self.escape_json_string(expr.start.value)}","to":"{self.escape_json_string(expr.to.value) if expr.to else "null"}" }}'
+        return f'{{' \
+               f'   "type":"CharacterRange",' \
+               f'   "from":"{self.escape_json_string(expr.start.value)}",' \
+               f'   "to":"{self.escape_json_string(expr.to.value) if expr.to else "null"}" ' \
+               f'}}'
 
     def visit_backreference(self, expr: Backreference):
-        return f'{{"type":"Backreference","token":"{expr.number.value}"}}'
+        return f'{{' \
+               f'   "type":"Backreference",' \
+               f'   "token":"{expr.number.value}"' \
+               f'}}'
 
     def visit_any_char(self, expr):
-        return f'{{"type":"MatchAnyCharacter","token":"."}}'
+        return f'{{\n' \
+               f'   "type":"MatchAnyCharacter",\n' \
+               f'   "token":"."\n' \
+               f'}}\n'
 
     def visit_character(self, expr: Character):
-        return f'{{"type":"Character","token":"{self.escape_json_string(expr.token.value)}"}}'
+        return f'{{' \
+               f'   "type":"Character",' \
+               f'   "token":"{self.escape_json_string(expr.token.value)}"' \
+               f'}}'
 
     def visit_range_quantifier(self, expr: RangeQuantifier):
-        return f'{{"type":"RangeQuantifier","low_bound":{expr.low_bound},"fixed_bound":{1 if expr.fixed_bound else 0}, "up_bound":{expr.up_bound if expr.up_bound else "null"} }}'
+        return f'{{' \
+               f'   "type":"RangeQuantifier",' \
+               f'   "low_bound":{expr.low_bound},' \
+               f'   "fixed_bound":{1 if expr.fixed_bound else 0},' \
+               f'   "up_bound":{expr.up_bound if expr.up_bound else "null"}, ' \
+               f'   "lazy": {1 if expr.lazy else 0} ' \
+               f'}}'
 
-    def visit_zero_or_more_quantifier(self, expr):
-        return f'{{"type":"ZeroOrMoreQuantifier","token":"*"}}'
+    def visit_zero_or_more_quantifier(self, expr: ZeroOrMoreQuantifier):
+        return f'{{' \
+               f'   "type":"ZeroOrMoreQuantifier",' \
+               f'   "token":"*", ' \
+               f'   "lazy": {1 if expr.lazy else 0}' \
+               f'}}'
 
-    def visit_one_or_more_quantifier(self, expr):
-        return f'{{"type":"OneOrMoreQuantifier","token":"+"}}'
+    def visit_one_or_more_quantifier(self, expr: OneOrMoreQuantifier):
+        return f'{{' \
+               f'   "type":"OneOrMoreQuantifier",' \
+               f'   "token":"+",' \
+               f'   "lazy": {1 if expr.lazy else 0} ' \
+               f'}}'
 
-    def visit_zero_or_one_quantifier(self, expr):
-        return f'{{"type":"ZeroOrOneQuantifier","token":"?"}}'
+    def visit_zero_or_one_quantifier(self, expr: ZeroOrOneQuantifier):
+        return f'{{' \
+               f'   "type":"ZeroOrOneQuantifier",' \
+               f'   "token":"?", ' \
+               f'   "lazy": {1 if expr.lazy else 0} ' \
+               f'}}'
 
     def visit_anchor_start_of_string(self, expr):
-        return f'{{"type":"AnchorEndOfString","token":"^"}}'
+        return f'{{' \
+               f'   "type":"AnchorEndOfString",' \
+               f'   "token":"^"' \
+               f'}}'
 
     def visit_anchor_end_of_string(self, expr):
-        return f'{{"type":"AnchorEndOfString","token":"$"}}'
+        return f'{{' \
+               f'   "type":"AnchorEndOfString",' \
+               f'   "token":"$"' \
+               f'}}'
 
     def visit_anchor_word_bound(self, expr):
-        return f'{{"type":"AnchorWordBoundary","token":"\\b"}}'
+        return f'{{' \
+               f'   "type":"AnchorWordBoundary",' \
+               f'   "token":"\\b"' \
+               f'}}'
 
     def visit_anchor_non_word_bound(self, expr):
-        return f'{{"type":"AnchorNonWordBoundary","token":"\\B"}}'
+        return f'{{' \
+               f'   "type":"AnchorNonWordBoundary",' \
+               f'   "token":"\\B"' \
+               f'}}'
 
     def visit_anchor_start_of_string_only(self, expr):
-        return f'{{"type":"AnchorStartOfStringOnly","token":"\\A"}}'
+        return f'{{' \
+               f'   "type":"AnchorStartOfStringOnly",' \
+               f'   "token":"\\A"' \
+               f'}}'
 
     def visit_anchor_start_of_string_only_nnl(self, expr):
-        return f'{{"type":"AnchorEndOfStringOnlyNotNewline","token":"\\z"}}'
+        return f'{{' \
+               f'   "type":"AnchorEndOfStringOnlyNotNewline",' \
+               f'   "token":"\\z"' \
+               f'}}'
 
     def visit_anchor_end_of_string_only(self, expr):
-        return f'{{"type":"AnchorEndOfStringOnly","token":"\\Z"}}'
+        return f'{{' \
+               f'   "type":"AnchorEndOfStringOnly",' \
+               f'   "token":"\\Z"' \
+               f'}}'
 
     def visit_anchor_pre_match_end(self, expr):
-        return f'{{"type":"AnchorPreviousMatchEnd","token":"\\G"}}'
+        return f'{{' \
+               f'   "type":"AnchorPreviousMatchEnd",' \
+               f'   "token":"\\G"' \
+               f'}}'
 
     @staticmethod
     def escape_json_string(s: str) -> str:

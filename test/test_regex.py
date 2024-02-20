@@ -261,6 +261,8 @@ class RegexTest(unittest.TestCase):
         regexes = [
             r"[\w-a-z]",
             r"[a-zA-Z]",
+            r"<(.+?)>",
+            r"<([^>]+?)>"
             # r"[z-a]",
         ]
         for r in regexes:
@@ -317,3 +319,4 @@ class RegexTest(unittest.TestCase):
         nfa.add_transition("q1", "q1", EpsilonMatcher())
         nfa.add_transition("q1", "q2", CharacterMatcher("b"))
         print(nfa.compute("abc"))
+

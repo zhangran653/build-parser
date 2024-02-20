@@ -11,10 +11,7 @@ class ASTPrinter(Visitor):
         return expr.subexpression.accept(self)
 
     def visit_subexpression(self, expr: SubExpression):
-        if len(expr.items) == 1:
-            return expr.items[0].accept(self)
-        else:
-            return f'[{",".join(x.accept(self) for x in expr.items)}]'
+        return f'{{ "type":"Concat", "expressions": [{",".join(x.accept(self) for x in expr.items)}] }}'
 
     def visit_group(self, expr: Group):
         return f'{{"type":"Group","expression":{expr.expression.accept(self)} ,"non_capturing": {1 if expr.non_capturing else 0}, "quantifier":{expr.quantifier.accept(self) if expr.quantifier else "null"} }}'
@@ -107,4 +104,4 @@ class ASTPrinter(Visitor):
     def ast_string(self, exprs: Expression):
         if exprs:
             return exprs.accept(self)
-        return "[]"
+        return "{}"

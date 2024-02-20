@@ -67,7 +67,7 @@ class EngineNFA:
     def __init__(self):
         self.states = {}
         self.initial_state = None
-        self.ending_states = None
+        self.ending_states = []
 
     def add_state(self, name: str):
         self.states[name] = State(name)

@@ -48,6 +48,10 @@ class Interpreter(Visitor):
         self.sg = StateNameGenerator()
         self.nfa = None
 
+    def build_nfa(self):
+        self.nfa = self.ast.accept(self)
+        return self.nfa
+
     def _next_id(self) -> str:
         return self.sg.next()
 
@@ -202,8 +206,22 @@ class Interpreter(Visitor):
         nfa.ending_states = [new_end]
         return nfa
 
+    def _optional(self, nfa: EngineNFA, lazy: bool) -> EngineNFA:
+        """
+        match 0 or 1 times
+
+        :param nfa:
+        :param lazy:
+        :return:
+        """
+        if lazy:
+            # adds a transition to first transition gives it the max priority
+            nfa.add_transition_to_first(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
+        nfa.add_transition(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
+        return nfa
+
     def visit_expression(self, expr: Expression) -> EngineNFA:
-        if self.ast.alternation:
+        if expr.alternation:
             return self._alternative_nfa(expr.subexpression.accept(self), expr.alternation.accept(self))
         else:
             return expr.subexpression.accept(self)
@@ -215,17 +233,19 @@ class Interpreter(Visitor):
         :param expr:
         :return:
         """
-        item_nfa = [exp.accept(self) for exp in expr.items]
+        item_nfa = []
+        for exp in expr.items:
+            nfa = exp.accept(self)
+            item_nfa.append(nfa)
         if len(item_nfa) == 1:
             return item_nfa[0]
         return reduce(lambda nfa1, nfa2: nfa1.append_nfa(nfa2, nfa1.ending_states[0]), item_nfa)
 
     def visit_group(self, expr: Group) -> EngineNFA:
-        # TODO quantifier and capturing
+        # TODO capturing
         return expr.expression.accept(self)
 
     def visit_match(self, expr: Match) -> EngineNFA:
-        # TODO quantifier
         return expr.match_item.accept(self)
 
     def visit_character_group(self, expr: CharacterGroup) -> EngineNFA:
@@ -265,13 +285,13 @@ class Interpreter(Visitor):
         raise NotImplementedError()
 
     def visit_zero_or_more_quantifier(self, expr: ZeroOrMoreQuantifier) -> EngineNFA:
-        pass
+        return self._asterisk(expr.expr.accept(self), expr.lazy)
 
     def visit_one_or_more_quantifier(self, expr: OneOrMoreQuantifier) -> EngineNFA:
-        pass
+        return self._plus(expr.expr.accept(self), expr.lazy)
 
     def visit_zero_or_one_quantifier(self, expr: ZeroOrOneQuantifier) -> EngineNFA:
-        pass
+        return self._optional(expr.expr.accept(self), expr.lazy)
 
     def visit_anchor_start_of_string(self, expr: AnchorStartOfString) -> EngineNFA:
         pass

@@ -3,6 +3,7 @@ import unittest
 
 from regex.ASTPrinter import ASTPrinter
 from regex.EngineNFA import EngineNFA, CharacterMatcher, EpsilonMatcher
+from regex.NFARegex import NFARegex
 from regex.Parser import Parser
 from regex.Scanner import Scanner
 
@@ -319,4 +320,53 @@ class RegexTest(unittest.TestCase):
         nfa.add_transition("q1", "q1", EpsilonMatcher())
         nfa.add_transition("q1", "q2", CharacterMatcher("b"))
         print(nfa.compute("abc"))
+
+    def test17(self):
+        nfa = NFARegex(r"(a|b)+c*")
+        print(nfa.nfa)
+        printer = ASTPrinter()
+        ret = printer.ast_string(nfa.ast)
+        # print(ret)
+        # Parse the JSON string into a Python dictionary
+        parsed_json = json.loads(ret)
+        # Pretty print the JSON
+        pretty_json = json.dumps(parsed_json, indent=2)
+        print(pretty_json)
+
+        assert nfa.compute("abababababacccc")
+        assert not nfa.compute("caaaabbbab")
+        assert nfa.compute("bb")
+        assert nfa.compute("aaaaaaa")
+        assert nfa.compute("a")
+        assert nfa.compute("b")
+        assert nfa.compute("bbbbbb")
+        assert nfa.compute("ab")
+        assert nfa.compute("ba")
+        assert nfa.compute("ac")
+        assert nfa.compute("acccc")
+        assert nfa.compute("bc")
+        assert nfa.compute("bcccc")
+        assert not nfa.compute("c")
+        assert not nfa.compute("ca")
+        assert not nfa.compute("cb")
+        assert not nfa.compute("x")
+
+    def test18(self):
+        nfa = NFARegex("a+c?b+")
+        print(nfa.nfa)
+        printer = ASTPrinter()
+        ret = printer.ast_string(nfa.ast)
+        # print(ret)
+        # Parse the JSON string into a Python dictionary
+        parsed_json = json.loads(ret)
+        # Pretty print the JSON
+        pretty_json = json.dumps(parsed_json, indent=2)
+        print(pretty_json)
+
+        assert nfa.compute("aaaaacbbbbbb")
+        assert not nfa.compute("accb")
+        assert nfa.compute("ab")
+        assert nfa.compute("aabb")
+        assert nfa.compute("aacbb")
+        assert not nfa.compute("cb")
 

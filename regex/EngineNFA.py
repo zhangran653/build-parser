@@ -62,12 +62,23 @@ class State:
         ts = [f'{{ "matcher": {m},"toState":"{t.name}" }}' for m, t in self.transitions]
         return f'{{ "name": "{self.name}","transitions":[{",".join(ts)}] }}'
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class EngineNFA:
     def __init__(self):
         self.states = {}
         self.initial_state = None
         self.ending_states = []
+
+    def __repr__(self):
+        formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
+
+        return f'{{ "state":{formatted_map},"initial_state":"{self.initial_state}","ending_states":["{",".join(self.ending_states)}"] }}'
+
+    def __str__(self):
+        return self.__repr__()
 
     def add_state(self, name: str):
         self.states[name] = State(name)
@@ -91,7 +102,7 @@ class EngineNFA:
         :return:
         """
         # 1. copy the states of other nfa to this nfa
-        for n, s in other.states:
+        for n, s in other.states.items():
             self.states[n] = s
 
         # 2. remove init states of other nfa
@@ -119,14 +130,14 @@ class EngineNFA:
                 return True
             # TODO
             if i > len(string) - 1:
-                return False
+                return True
             char = string[i]
 
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
                 if matcher.matches(char):
                     # copy visited
-                    if matcher.is_epsilon:
+                    if matcher.is_epsilon():
                         # Don't follow the transition. Already have been in that state
                         if to_state.name in visited:
                             continue

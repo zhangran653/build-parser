@@ -61,14 +61,18 @@ class Interpreter(Visitor):
         self.sg = StateNameGenerator()
         self.gg = GroupNameGenerator()
         self.nfa = None
+        # a [group_id:group_name] map, used for capture group name
+        self.group_name_map = {}
 
     def build_nfa(self):
         self.sg.reset()
         self.gg.reset()
         # by default the root of the tree is a group
         group = self.gg.next()
+        self.group_name_map[group] = None
         self.nfa = self.ast.accept(self)
         self.nfa.add_group(self.nfa.initial_state, self.nfa.ending_states[0], group)
+        self.nfa.group_name_map = dict(self.group_name_map)
         return self.nfa
 
     def _next_id(self) -> str:
@@ -266,8 +270,9 @@ class Interpreter(Visitor):
         nfa = expr.expression.accept(self)
         if expr.non_capturing:
             return nfa
-        group = self.gg.next()
-        nfa.add_group(nfa.initial_state, nfa.ending_states[0], group)
+        group_id = self.gg.next()
+        self.group_name_map[group_id] = expr.group_name
+        nfa.add_group(nfa.initial_state, nfa.ending_states[0], group_id)
         return nfa
 
     def visit_match(self, expr: Match) -> EngineNFA:

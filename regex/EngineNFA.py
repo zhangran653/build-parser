@@ -66,7 +66,7 @@ class State:
         return self.__repr__()
 
 
-class Group:
+class CaptureGroup:
     def __init__(self, gid: int, pos_s: int, pos_e: int, substring: str, name: str = None):
         self.gid = gid
         self.pos_s = pos_s
@@ -75,7 +75,7 @@ class Group:
         self.name = name
 
     def __repr__(self):
-        return f'Group {self.gid}: {self.substring}\n' \
+        return f'Group {self.gid if not self.name else self.name}: {self.substring}\n' \
                f'Pos: [{self.pos_s}-{self.pos_e}] '
 
     def __str__(self):
@@ -88,6 +88,7 @@ class EngineNFA:
         self.initial_state = None
         self.ending_states = []
         self.groups = []
+        self.group_name_map = {}
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
@@ -153,7 +154,7 @@ class EngineNFA:
         for g in state.end_groups:
             group[g][1] = pos
 
-    def compute(self, string: str) -> list[Group]:
+    def compute(self, string: str) -> list[CaptureGroup]:
         # (current position of string, current state, visited states through epsilon,group map)
         stack = [(0, self.states[self.initial_state], set(), {})]
         # push initial state. the i is current position of string
@@ -164,7 +165,7 @@ class EngineNFA:
             if current_state.name in self.ending_states:
                 for k, v in groups.items():
                     if v[1] is not None:
-                        self.groups.insert(k, Group(k, v[0], v[1], string[v[0]:v[1]]))
+                        self.groups.insert(k, CaptureGroup(k, v[0], v[1], string[v[0]:v[1]], self.group_name_map[k]))
                 return self.groups
             char = string[i] if i <= len(string) - 1 else None
 

@@ -403,7 +403,7 @@ class RegexTest(unittest.TestCase):
 
         assert not nfa.compute("a")
         self.print_groups(nfa)
-        assert nfa.compute("aac")
+        assert nfa.compute("ac")
         self.print_groups(nfa)
         assert not nfa.compute("c")
         self.print_groups(nfa)
@@ -411,4 +411,9 @@ class RegexTest(unittest.TestCase):
     def test20(self):
         nfa = NFARegex("((?:a|b)+)(cd)")
         assert nfa.compute("bbaacd")
+        self.print_groups(nfa)
+
+    def test21(self):
+        nfa = NFARegex("(?<ga>a+)(?<gb>b+)")
+        assert nfa.compute("aaabb")
         self.print_groups(nfa)

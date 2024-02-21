@@ -143,7 +143,7 @@ class Group(Expr):
 
 
 class CharacterGroup(Expr):
-    def __init__(self, items, negative=False):
+    def __init__(self, items: list[Expr], negative=False):
         self.items = items
         self.negative = negative
 
@@ -529,7 +529,7 @@ class Parser:
             raise ValueError(f"{self.peek()} not expected. expect letter or integer for group name")
         self.consume(TokenType.GREAT, "expect '>' for end of group name")
         return name
-    
+
     def anchor(self):
         """
         Anchor ::= "^" | "\b" | "\B" | "\A" | "\z" | "\Z" | "\G" | "$"
@@ -599,7 +599,7 @@ class Parser:
 
     def char_range(self) -> CharRange:
         """
-        # CharacterRange ::= Char "-" (Char)?
+        # CharacterRange ::= Char ("-" Char)?
         :return:
         """
         c = self.previous()

@@ -417,3 +417,57 @@ class RegexTest(unittest.TestCase):
         nfa = NFARegex("(?<ga>a+)(?<gb>b+)")
         assert nfa.compute("aaabb")
         self.print_groups(nfa)
+
+    def test22(self):
+        nfa = NFARegex("\n")
+        assert nfa.compute("\n")
+        self.print_groups(nfa)
+
+    def test23(self):
+        nfa = NFARegex("[0-8]+")
+        assert nfa.compute("0123456789asdfa123")
+        self.print_groups(nfa)
+        nfa = NFARegex("[^0-8]+")
+        assert nfa.compute("aeaa119abcde102a")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[\d]+")
+        assert nfa.compute("1234100123410412346899")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[\D]+")
+        assert not nfa.compute("1234100123410412346899")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[\w]+")
+        assert nfa.compute("fweas_fwfwq12123e45ZKHJLKHI")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[\W]+")
+        assert nfa.compute("@#$%^&*()")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[^\w\d]+")
+        assert nfa.compute("@#$%^&*()")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("\d+")
+        assert nfa.compute("1123123asd123")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("\S+")
+        assert nfa.compute("1123123asd123")
+        self.print_groups(nfa)
+
+        nfa = NFARegex(".+")
+        assert nfa.compute("1123123asd\n123")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[abcde0-5-]+")
+        assert nfa.compute("ad23-210eszop9")
+        self.print_groups(nfa)
+
+        nfa = NFARegex("[.]+")
+        assert not nfa.compute("aasd")
+        assert nfa.compute("....")
+        self.print_groups(nfa)

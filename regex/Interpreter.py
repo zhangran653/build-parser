@@ -1,6 +1,8 @@
 from functools import reduce
 
-from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher
+from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
+    IndividualCharMatcher
+from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -279,33 +281,76 @@ class Interpreter(Visitor):
         return expr.match_item.accept(self)
 
     def visit_character_group(self, expr: CharacterGroup) -> EngineNFA:
-        raise NotImplementedError()
+        """
+        CharacterGroup ::= "[" "^"? (CharacterClass | CharacterRange | Char - "]")+ "]"
+        :param expr:
+        :return:
+        """
+        # get matchers in transitions and compose them into one matcher
+        matchers = []
+        chars = []
+        for item in expr.items:
+            if isinstance(item, CharRange):
+                matchers.append(item.accept(self))
+            elif isinstance(item, Character):
+                chars.append(item.token.value)
+            else:
+                # will generate a nfa. but in character class, the matcher is needed instead of nfa
+                # so extract the matcher in it and leave the nfa
+                nfa = item.accept(self)
+                matchers.append(nfa.states[nfa.initial_state].transitions[0][0].matcher)
+        if len(chars) > 0:
+            matchers.append(IndividualCharMatcher(chars))
+        mather = ComplexMatcher(matchers, expr.negative)
+        return self._basic_nfa(CustomMatcher(mather))
 
     def visit_char_class_any_word(self, expr: CharClassAnyWord) -> EngineNFA:
-        raise NotImplementedError()
+        # \w
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\w'])
+        return self._basic_nfa(mather)
 
     def visit_char_class_any_word_inv(self, expr: CharClassAnyWordInverted) -> EngineNFA:
-        raise NotImplementedError()
+        # \W
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\W'])
+        return self._basic_nfa(mather)
 
     def visit_char_class_any_digit(self, expr: CharClassAnyDecimalDigit) -> EngineNFA:
-        raise NotImplementedError()
+        # \d
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\d'])
+        return self._basic_nfa(mather)
 
     def visit_char_class_any_digit_inv(self, expr: CharClassAnyDecimalDigitInverted) -> EngineNFA:
-        raise NotImplementedError()
+        # \D
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\D'])
+        return self._basic_nfa(mather)
 
     def visit_char_class_any_white_space(self, expr: CharClassAnyWhitespace) -> EngineNFA:
-        raise NotImplementedError()
+        # \s
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\s'])
+        return self._basic_nfa(mather)
 
     def visit_char_class_any_white_space_inv(self, expr: CharClassAnyWhitespaceInverted) -> EngineNFA:
-        raise NotImplementedError()
+        # \S
+        mather = CustomMatcher(CHARACTER_CLASSES_MATCHER[r'\S'])
+        return self._basic_nfa(mather)
 
-    def visit_character_range(self, expr: CharRange) -> EngineNFA:
-        raise NotImplementedError()
-
-    def visit_backreference(self, expr: Backreference) -> EngineNFA:
-        raise NotImplementedError()
+    def visit_character_range(self, expr: CharRange) -> ClassMatcher:
+        return RangeMatcher(expr.start.value, expr.to.value)
 
     def visit_any_char(self, expr: AnyChar) -> EngineNFA:
+        """
+        Dot(.) matches any character except line breaks.
+        The definition of what a line break is varies with the languages.
+        As regular-expressions.info states: \n is always a line break,
+        Javascript also considers \r, \u2028 and \u2029 and Java even adds \u0085.
+        For simplicity only add \n and \r.
+        :param expr:
+        :return:
+        """
+        mather = CustomMatcher(ComplexMatcher([IndividualCharMatcher(["\n", "\r"])], True))
+        return self._basic_nfa(mather)
+
+    def visit_backreference(self, expr: Backreference) -> EngineNFA:
         raise NotImplementedError()
 
     def visit_character(self, expr: Character) -> EngineNFA:
@@ -324,25 +369,25 @@ class Interpreter(Visitor):
         return self._optional(expr.expr.accept(self), expr.lazy)
 
     def visit_anchor_start_of_string(self, expr: AnchorStartOfString) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_end_of_string(self, expr: AnchorEndOfString) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_word_bound(self, expr: AnchorWordBoundary) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_non_word_bound(self, expr: AnchorNonWordBoundary) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_start_of_string_only(self, expr: AnchorStartOfStringOnly) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_start_of_string_only_nnl(self, expr: AnchorEndOfStringOnlyNotNewline) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_end_of_string_only(self, expr: AnchorEndOfStringOnly) -> EngineNFA:
-        pass
+        raise NotImplementedError()
 
     def visit_anchor_pre_match_end(self, expr: AnchorPreviousMatchEnd) -> EngineNFA:
-        pass
+        raise NotImplementedError()

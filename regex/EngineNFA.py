@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from regex.CharaterClassMatcher import ClassMatcher
+
 
 class Matcher:
     def matches(self, char):
@@ -29,6 +31,9 @@ class CharacterMatcher(Matcher):
     def __repr__(self):
         return f'{{ "CharacterMatcher":"{self.get_label()}" }}'
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class EpsilonMatcher(Matcher):
 
@@ -43,6 +48,25 @@ class EpsilonMatcher(Matcher):
 
     def __repr__(self):
         return f'{{ "EpsilonMatcher":"{self.get_label()}" }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class CustomMatcher(Matcher):
+    def __init__(self, class_matcher: ClassMatcher):
+        self.matcher = class_matcher
+
+    def matches(self, char):
+        if char is None:
+            return False
+        return self.matcher.matches(char)
+
+    def is_epsilon(self):
+        return False
+
+    def get_label(self):
+        return "CustomMatcher"
 
 
 class State:
@@ -87,7 +111,7 @@ class EngineNFA:
         self.states = {}
         self.initial_state = None
         self.ending_states = []
-        self.groups = []
+        self.groups = []  # id:list[capture group]
         self.group_name_map = {}
 
     def __repr__(self):
@@ -148,11 +172,11 @@ class EngineNFA:
 
         return self
 
-    def compute_groups(self, state: State, group: map[int:list[int, int]], pos: int):
+    def compute_groups(self, state: State, groups: map[int:list[int, int]], pos: int):
         for g in state.start_groups:
-            group[g] = [pos, None]
+            groups[g] = [pos, None]
         for g in state.end_groups:
-            group[g][1] = pos
+            groups[g][1] = pos
 
     def compute(self, string: str) -> list[CaptureGroup]:
         # (current position of string, current state, visited states through epsilon,group map)

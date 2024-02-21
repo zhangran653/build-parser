@@ -12,7 +12,7 @@ class NFARegex:
         self.scanner = Scanner(regex)
         self.ast = Parser(Scanner(regex).scan_tokens()).parse()
         self.nfa = None if self.ast is None else Interpreter(self.ast).build_nfa()
-        self.groups = []
+        self.groups = {}
 
     def compute(self, string: str) -> List[CaptureGroup]:
         self.groups = self.nfa.compute(string) if self.nfa else []

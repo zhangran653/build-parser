@@ -4,13 +4,13 @@ from regex.CharaterClassMatcher import ClassMatcher
 
 
 class Matcher:
-    def matches(self, char):
+    def matches(self, string: str, pos: int) -> bool:
         raise NotImplementedError()
 
-    def is_epsilon(self):
+    def is_epsilon(self) -> bool:
         raise NotImplementedError()
 
-    def get_label(self):
+    def get_label(self) -> str:
         raise NotImplementedError()
 
 
@@ -19,8 +19,10 @@ class CharacterMatcher(Matcher):
     def __init__(self, c):
         self.c = c
 
-    def matches(self, char: str) -> bool:
-        return self.c == char
+    def matches(self, string: str, pos: int) -> bool:
+        if pos > len(string) - 1:
+            return False
+        return self.c == string[pos]
 
     def is_epsilon(self) -> bool:
         return False
@@ -37,7 +39,7 @@ class CharacterMatcher(Matcher):
 
 class EpsilonMatcher(Matcher):
 
-    def matches(self, char) -> bool:
+    def matches(self, string: str, pos: int) -> bool:
         return True
 
     def is_epsilon(self):
@@ -53,14 +55,50 @@ class EpsilonMatcher(Matcher):
         return self.__repr__()
 
 
+class StartOfStringMatcher(Matcher):
+
+    def matches(self, string: str, pos: int) -> bool:
+        return pos == 0
+
+    def is_epsilon(self) -> bool:
+        return True
+
+    def get_label(self) -> str:
+        return "^"
+
+    def __repr__(self):
+        return f'{{ "StartOfStringMatcher":"{self.get_label()}" }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class EndOfStringMatcher(Matcher):
+
+    def matches(self, string: str, pos: int) -> bool:
+        return pos == len(string)
+
+    def is_epsilon(self) -> bool:
+        return True
+
+    def get_label(self) -> str:
+        return "$"
+
+    def __repr__(self):
+        return f'{{ "EndOfStringMatcher":"{self.get_label()}" }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
 class CustomMatcher(Matcher):
     def __init__(self, class_matcher: ClassMatcher):
         self.matcher = class_matcher
 
-    def matches(self, char):
-        if char is None:
+    def matches(self, string: str, pos: int) -> bool:
+        if pos > len(string) - 1:
             return False
-        return self.matcher.matches(char)
+        return self.matcher.matches(string, pos)
 
     def is_epsilon(self):
         return False
@@ -191,11 +229,10 @@ class EngineNFA:
                     if v[1] is not None:
                         self.groups.insert(k, CaptureGroup(k, v[0], v[1], string[v[0]:v[1]], self.group_name_map[k]))
                 return self.groups
-            char = string[i] if i <= len(string) - 1 else None
 
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
-                if matcher.matches(char):
+                if matcher.matches(string, i):
                     # copy visited
                     if matcher.is_epsilon():
                         # Don't follow the transition. Already have been in that state

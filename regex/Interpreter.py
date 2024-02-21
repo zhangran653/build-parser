@@ -2,7 +2,8 @@ from functools import reduce
 
 from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
     IndividualCharMatcher
-from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher
+from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
+    EndOfStringMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -357,6 +358,7 @@ class Interpreter(Visitor):
         return self._single_symbol_nfa(c(expr.token.value))
 
     def visit_range_quantifier(self, expr: RangeQuantifier) -> EngineNFA:
+        # TODO
         raise NotImplementedError()
 
     def visit_zero_or_more_quantifier(self, expr: ZeroOrMoreQuantifier) -> EngineNFA:
@@ -369,10 +371,10 @@ class Interpreter(Visitor):
         return self._optional(expr.expr.accept(self), expr.lazy)
 
     def visit_anchor_start_of_string(self, expr: AnchorStartOfString) -> EngineNFA:
-        raise NotImplementedError()
+        return self._basic_nfa(StartOfStringMatcher())
 
     def visit_anchor_end_of_string(self, expr: AnchorEndOfString) -> EngineNFA:
-        raise NotImplementedError()
+        return self._basic_nfa(EndOfStringMatcher())
 
     def visit_anchor_word_bound(self, expr: AnchorWordBoundary) -> EngineNFA:
         raise NotImplementedError()

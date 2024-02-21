@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class ClassMatcher:
-    def matches(self, c: str):
+    def matches(self, string: str, pos: int) -> bool:
         raise NotImplementedError()
 
 
@@ -11,16 +11,16 @@ class RangeMatcher(ClassMatcher):
         self.start = start
         self.end = end
 
-    def matches(self, c: str):
-        return self.start <= c <= self.end
+    def matches(self, string: str, pos: int) -> bool:
+        return self.start <= string[pos] <= self.end
 
 
 class IndividualCharMatcher(ClassMatcher):
     def __init__(self, chars: list[str]):
         self.chars = set(chars)
 
-    def matches(self, c: str):
-        return c in self.chars
+    def matches(self, string: str, pos: int) -> bool:
+        return string[pos] in self.chars
 
 
 class ComplexMatcher(ClassMatcher):
@@ -28,9 +28,9 @@ class ComplexMatcher(ClassMatcher):
         self.matchers = matchers
         self.negative = negative
 
-    def matches(self, c: str):
+    def matches(self, string: str, pos: int) -> bool:
         for matcher in self.matchers:
-            if matcher.matches(c):
+            if matcher.matches(string, pos):
                 return True if not self.negative else False
         return False if not self.negative else True
 

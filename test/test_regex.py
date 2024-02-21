@@ -423,6 +423,10 @@ class RegexTest(unittest.TestCase):
         assert nfa.compute("\n")
         self.print_groups(nfa)
 
+        nfa = NFARegex("\++\w+")
+        assert nfa.compute("+++++123df")
+        self.print_groups(nfa)
+
     def test23(self):
         nfa = NFARegex("[0-8]+")
         assert nfa.compute("0123456789asdfa123")
@@ -471,3 +475,9 @@ class RegexTest(unittest.TestCase):
         assert not nfa.compute("aasd")
         assert nfa.compute("....")
         self.print_groups(nfa)
+
+    def test24(self):
+        nfa = NFARegex("^ab$")
+        assert nfa.compute("ab")
+        self.print_groups(nfa)
+        assert not nfa.compute("abb")

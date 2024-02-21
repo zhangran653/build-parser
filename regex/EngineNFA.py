@@ -73,6 +73,24 @@ class StartOfStringMatcher(Matcher):
         return self.__repr__()
 
 
+class StartOfLineMatcher(Matcher):
+
+    def matches(self, string: str, pos: int) -> bool:
+        return pos == 0 or string[pos - 1] == '\n'
+
+    def is_epsilon(self) -> bool:
+        return True
+
+    def get_label(self) -> str:
+        return "^"
+
+    def __repr__(self):
+        return f'{{ "StartOfLineMatcher":"{self.get_label()}" }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
 class EndOfStringMatcher(Matcher):
 
     def matches(self, string: str, pos: int) -> bool:
@@ -86,6 +104,24 @@ class EndOfStringMatcher(Matcher):
 
     def __repr__(self):
         return f'{{ "EndOfStringMatcher":"{self.get_label()}" }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class EndOfLineMatcher(Matcher):
+
+    def matches(self, string: str, pos: int) -> bool:
+        return pos == len(string) or string[pos] == '\n'
+
+    def is_epsilon(self) -> bool:
+        return True
+
+    def get_label(self) -> str:
+        return "$"
+
+    def __repr__(self):
+        return f'{{ "EndOfSLineMatcher":"{self.get_label()}" }}'
 
     def __str__(self):
         return self.__repr__()

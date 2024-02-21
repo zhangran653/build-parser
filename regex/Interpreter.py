@@ -3,7 +3,7 @@ from functools import reduce
 from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
     IndividualCharMatcher
 from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
-    EndOfStringMatcher
+    EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -59,7 +59,8 @@ class Interpreter(Visitor):
     Interpret AST to NFA
     """
 
-    def __init__(self, ast: Expression):
+    def __init__(self, ast: Expression, **mode):
+        self.mode = mode
         self.ast = ast
         self.sg = StateNameGenerator()
         self.gg = GroupNameGenerator()
@@ -371,10 +372,10 @@ class Interpreter(Visitor):
         return self._optional(expr.expr.accept(self), expr.lazy)
 
     def visit_anchor_start_of_string(self, expr: AnchorStartOfString) -> EngineNFA:
-        return self._basic_nfa(StartOfStringMatcher())
+        return self._basic_nfa(StartOfLineMatcher() if self.mode.get('m', None) else StartOfStringMatcher())
 
     def visit_anchor_end_of_string(self, expr: AnchorEndOfString) -> EngineNFA:
-        return self._basic_nfa(EndOfStringMatcher())
+        return self._basic_nfa(EndOfLineMatcher() if self.mode.get('m', None) else EndOfStringMatcher())
 
     def visit_anchor_word_bound(self, expr: AnchorWordBoundary) -> EngineNFA:
         raise NotImplementedError()

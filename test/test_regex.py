@@ -322,13 +322,12 @@ class RegexTest(unittest.TestCase):
         print(nfa.compute("abc"))
 
     def print_groups(self, nfa: NFARegex):
-        print(f"{nfa.source}: ")
+        print(f"")
         for g in nfa.groups:
             print(g)
 
     def test17(self):
         nfa = NFARegex(r"(?<g1>a|b)+c*")
-        print(nfa.nfa)
         printer = ASTPrinter()
         ret = printer.ast_string(nfa.ast)
         print(ret)
@@ -375,7 +374,6 @@ class RegexTest(unittest.TestCase):
 
     def test18(self):
         nfa = NFARegex("a+c?b+")
-        print(nfa.nfa)
         printer = ASTPrinter()
         ret = printer.ast_string(nfa.ast)
         # print(ret)
@@ -481,3 +479,7 @@ class RegexTest(unittest.TestCase):
         assert nfa.compute("ab")
         self.print_groups(nfa)
         assert not nfa.compute("abb")
+
+        nfa = NFARegex("^a$\n^b$", m=True)
+        assert nfa.compute("a\nb")
+        assert not nfa.compute("ab")

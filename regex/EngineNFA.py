@@ -250,9 +250,9 @@ class EngineNFA:
         for g in state.end_groups:
             groups[g][1] = pos
 
-    def compute(self, string: str) -> dict[int:list[int, int]]:
+    def compute(self, string: str, pos: int = 0) -> dict[int:list[int, int]]:
         # (current position of string, current state, visited states through epsilon,group map)
-        stack = [(0, self.states[self.initial_state], set(), {})]
+        stack = [(pos, self.states[self.initial_state], set(), {})]
         # push initial state. the i is current position of string
         while len(stack) > 0:
             i, current_state, visited, groups = stack.pop()

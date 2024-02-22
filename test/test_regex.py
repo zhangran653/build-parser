@@ -322,7 +322,7 @@ class RegexTest(unittest.TestCase):
         print(nfa.compute("abc"))
 
     def print_groups(self, nfa: NFARegex):
-        for k,v in nfa.groups.items():
+        for k, v in nfa.groups.items():
             print(v)
         print()
 
@@ -427,7 +427,7 @@ class RegexTest(unittest.TestCase):
 
     def test23(self):
         nfa = NFARegex("[0-8]+")
-        assert nfa.compute("0123456789asdfa123")
+        assert nfa.find("asd0123456789asdfa123")
         self.print_groups(nfa)
         nfa = NFARegex("[^0-8]+")
         assert nfa.compute("aeaa119abcde102a")
@@ -491,3 +491,16 @@ class RegexTest(unittest.TestCase):
         assert nfa.compute("abcde")
         print(f'input: abcde')
         self.print_groups(nfa)
+
+    def test26(self):
+        nfa = NFARegex("[0-8]+")
+        s = "asd0123456789asdfa123adzz-.1230989ads"
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print("find all")
+        ret = nfa.find_all(s)
+        for r in ret:
+            for k, v in r.items():
+                print(v)
+                print()

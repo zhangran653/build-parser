@@ -173,8 +173,7 @@ class CaptureGroup:
         self.name = name
 
     def __repr__(self):
-        return f'Group {self.gid if not self.name else self.name}: {self.substring}\n' \
-               f'Pos: [{self.pos_s}-{self.pos_e}] '
+        return f'Group {self.gid if not self.name else self.name}: {self.substring}. Pos: [{self.pos_s}-{self.pos_e}] '
 
     def __str__(self):
         return self.__repr__()
@@ -185,7 +184,6 @@ class EngineNFA:
         self.states = {}
         self.initial_state = None
         self.ending_states = []
-        self.groups = []  # id:list[capture group]
         self.group_name_map = {}
 
     def __repr__(self):
@@ -246,13 +244,13 @@ class EngineNFA:
 
         return self
 
-    def compute_groups(self, state: State, groups: map[int:list[int, int]], pos: int):
+    def compute_groups(self, state: State, groups: dict[int:list[int, int]], pos: int):
         for g in state.start_groups:
             groups[g] = [pos, None]
         for g in state.end_groups:
             groups[g][1] = pos
 
-    def compute(self, string: str) -> list[CaptureGroup]:
+    def compute(self, string: str) -> dict[int:list[int, int]]:
         # (current position of string, current state, visited states through epsilon,group map)
         stack = [(0, self.states[self.initial_state], set(), {})]
         # push initial state. the i is current position of string
@@ -261,11 +259,7 @@ class EngineNFA:
             # group is a right-open interval [l, r)
             self.compute_groups(current_state, groups, i)
             if current_state.name in self.ending_states:
-                for k, v in groups.items():
-                    if v[1] is not None:
-                        self.groups.insert(k, CaptureGroup(k, v[0], v[1], string[v[0]:v[1]], self.group_name_map[k]))
-                return self.groups
-
+                return groups
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
                 if matcher.matches(string, i):
@@ -282,5 +276,4 @@ class EngineNFA:
                         cp = set()
                     next_i = i if matcher.is_epsilon() else i + 1
                     stack.append((next_i, to_state, cp, groups))
-        self.groups = []
-        return self.groups
+        return None

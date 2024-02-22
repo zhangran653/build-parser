@@ -322,9 +322,9 @@ class RegexTest(unittest.TestCase):
         print(nfa.compute("abc"))
 
     def print_groups(self, nfa: NFARegex):
-        print(f"")
-        for g in nfa.groups:
-            print(g)
+        for k,v in nfa.groups.items():
+            print(v)
+        print()
 
     def test17(self):
         nfa = NFARegex(r"(?<g1>a|b)+c*")
@@ -407,8 +407,8 @@ class RegexTest(unittest.TestCase):
         self.print_groups(nfa)
 
     def test20(self):
-        nfa = NFARegex("((?:a|b)+)(cd)")
-        assert nfa.compute("bbaacd")
+        nfa = NFARegex("((?:a|b)+(x(1|2(z))))(cd)")
+        assert nfa.compute("aabbx1cd")
         self.print_groups(nfa)
 
     def test21(self):
@@ -477,9 +477,17 @@ class RegexTest(unittest.TestCase):
     def test24(self):
         nfa = NFARegex("^ab$")
         assert nfa.compute("ab")
+        print(f'input: ab')
         self.print_groups(nfa)
         assert not nfa.compute("abb")
 
         nfa = NFARegex("^a$\n^b$", m=True)
         assert nfa.compute("a\nb")
+        print(f'input: a\nb')
+        self.print_groups(nfa)
         assert not nfa.compute("ab")
+
+        nfa = NFARegex("a(b(c)(d))(e)", m=True)
+        assert nfa.compute("abcde")
+        print(f'input: abcde')
+        self.print_groups(nfa)

@@ -276,6 +276,8 @@ class Interpreter(Visitor):
             self.group_id_stack.append(self.gg.next())
 
         nfa = expr.expression.accept(self)
+        if expr.atomic:
+            nfa.set_atomic_state(nfa.ending_states[0])
         if expr.non_capturing:
             return nfa
 

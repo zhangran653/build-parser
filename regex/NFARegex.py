@@ -14,6 +14,10 @@ class NFARegex:
         self._nfa = self._build_nfa()
         self.groups = {}
 
+    def reset(self):
+        self._pos = 0
+        self.groups = {}
+
     def _build_nfa(self) -> Optional[EngineNFA]:
         self.ast = Parser(Scanner(self._source).scan_tokens()).parse()
         if not self.ast:
@@ -23,7 +27,7 @@ class NFARegex:
         self.group_name_map = self.interpreter.group_name_map
         return self._nfa
 
-    def compute(self, string: str, pos: int = 0) -> dict[int:CaptureGroup]:
+    def compute(self, string: str, pos: int = 0):
         capture_groups = self._nfa.compute(string, pos) if self._nfa else None
         if not capture_groups:
             self.groups = {}
@@ -34,7 +38,7 @@ class NFARegex:
 
         return self.groups
 
-    def find(self, string: str) -> dict[int:CaptureGroup]:
+    def find(self, string: str):
         """
         for a single match. each time call the find method returns the next match
 
@@ -53,7 +57,7 @@ class NFARegex:
         self._pos = len(string)
         return None
 
-    def find_all(self, string: str) -> list[dict[int:CaptureGroup]]:
+    def find_all(self, string: str):
         """
         always start at position 0. finds a match and keeps looking for more
 

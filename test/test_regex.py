@@ -504,3 +504,14 @@ class RegexTest(unittest.TestCase):
             for k, v in r.items():
                 print(v)
                 print()
+
+    def test27(self):
+        nfa = NFARegex("a(?>bc|b)c")
+        s = "abcc"
+        assert nfa.compute(s)
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        nfa.reset()
+        s = "abc"
+        assert not nfa.compute(s)

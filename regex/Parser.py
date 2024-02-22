@@ -133,10 +133,12 @@ class CharRange(Expr):
 
 
 class Group(Expr):
-    def __init__(self, expression: Expression, non_capturing=False, group_name: str = None):
+    def __init__(self, expression: Expression, non_capturing: bool = False, group_name: str = None,
+                 atomic: bool = False):
         self.expression = expression
         self.non_capturing = non_capturing
         self.group_name = group_name
+        self.atomic = atomic
 
     def accept(self, visitor):
         return visitor.visit_group(self)
@@ -501,6 +503,7 @@ class Parser:
         """
         non_capturing = False
         group_name = None
+        atomic = False
         if self.check(TokenType.QUESTION) and self.check_next(TokenType.COLON):
             self.consume(TokenType.QUESTION, "")
             self.consume(TokenType.COLON, "")
@@ -509,10 +512,16 @@ class Parser:
             self.consume(TokenType.QUESTION, "")
             self.consume(TokenType.LESS, "")
             group_name = self.group_name()
+        elif self.check(TokenType.QUESTION) and self.check_next(TokenType.GREAT):
+            self.consume(TokenType.QUESTION, "")
+            self.consume(TokenType.GREAT, "")
+            # atomic groups are non-capturing group
+            atomic = True
+            non_capturing = True
 
         expr = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "expect ')' at group end")
-        g = Group(expr, non_capturing, group_name)
+        g = Group(expr, non_capturing, group_name, atomic)
         if self.match(*QUANTIFIER):
             return self.quantifier(g)
         return g

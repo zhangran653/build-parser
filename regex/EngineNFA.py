@@ -149,6 +149,7 @@ class State:
         self.transitions = []
         self.start_groups = []
         self.end_groups = []
+        self.atomic_group_end = False
 
     def add_transition(self, toState: State, matcher: Matcher):
         self.transitions.append([matcher, toState])
@@ -188,7 +189,6 @@ class EngineNFA:
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
-
         return f'{{ "state":{formatted_map},"initial_state":"{self.initial_state}","ending_states":["{",".join(self.ending_states)}"] }}'
 
     def __str__(self):
@@ -209,6 +209,9 @@ class EngineNFA:
     def add_group(self, start_state: str, end_state: str, group: int):
         self.states[start_state].start_groups.append(group)
         self.states[end_state].end_groups.append(group)
+
+    def set_atomic_state(self, state: str):
+        self.states[state].atomic_group_end = True
 
     def append_nfa(self, other: EngineNFA, joint_state: str) -> EngineNFA:
         """
@@ -260,6 +263,8 @@ class EngineNFA:
             self.compute_groups(current_state, groups, i)
             if current_state.name in self.ending_states:
                 return groups
+            if current_state.atomic_group_end:
+                stack = []
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
                 if matcher.matches(string, i):

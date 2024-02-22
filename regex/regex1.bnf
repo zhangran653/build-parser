@@ -4,7 +4,7 @@ Expression ::= Subexpression ( "|" Expression )?
 
 Subexpression ::= (Match | Group | Anchor | Backreference)+
 
-Group ::= "(" ( "?:" | "?<" (Letters | Integer)+ ">" )? Expression ")" Quantifier?
+Group ::= "(" ( "?:" | "?>" | "?<" (Letters | Integer)+ ">" )? Expression ")" Quantifier?
 
 Match ::= ( "." | CharacterGroup | CharacterClass | Char ) Quantifier?
 

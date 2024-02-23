@@ -63,7 +63,7 @@ CharacterClassAnyDecimalDigitInverted ::= "\D"
 CharacterClassAnyWhitespace ::= "\s"
 CharacterClassAnyWhitespaceInverted ::= "\S"
 
-CharacterClassFromUnicodeCategory ::= "\p{" UnicodeCategoryName "}"
+CharacterClassFromUnicodeCategory ::= "\p{" UnicodeCategoryName "}" // not support
 UnicodeCategoryName ::= Letters
 
 CharacterRange ::= Char ("-" Char)?
@@ -110,9 +110,9 @@ Anchor
 AnchorWordBoundary ::= "\b"
 AnchorNonWordBoundary ::= "\B"
 AnchorStartOfStringOnly ::= "\A"
-AnchorEndOfStringOnlyNotNewline ::= "\z"
+AnchorEndOfStringOnlyNotNewline ::= "\z" // not support
 AnchorEndOfStringOnly ::= "\Z"
-AnchorPreviousMatchEnd ::= "\G"
+AnchorPreviousMatchEnd ::= "\G"  // not support
 AnchorEndOfString ::= "$"
 
 /* Misc

@@ -360,6 +360,36 @@ class Interpreter(Visitor):
         return self._basic_nfa(mather)
 
     def visit_backreference(self, expr: Backreference) -> EngineNFA:
+        """
+        Backreferences are used to match the same text that has already matched in a previous capturing group.
+        For example: (['"])[a-zA-Z]+(['"]) matches "foo" and 'foo' but not "foo' or 'foo".
+
+        Corner cases that need to take into account:
+            1. Empty groups
+            For example: regex ()\1a with input "a".
+            The 1st group technically matches an empty string (ε/""), so \1 also matches an empty string and it
+            succeeds.
+
+            2. Unmatched groups
+            For example: regex (b)?\1a with input "a".
+            The 1st group fails to match, but since it's optional, it continues trying the rest and arrives \1.
+            In PCRE: unmatched backreferences always fails.
+            In JS: unmatched group is the same as an empty group, so \1 matches an empty string and succeeds.
+
+            3. Backreference before or even inside the group
+            For example: regex \1(a) and (a\1).
+            In PCRE: it always fails.
+            In JS: equivalent to regex (a).
+
+            4. Backreference in an alternative
+            For example: regex (\1b|a)+. It looks like a recursion.
+            In PCRE: Every time the capture group matches the value of group 1 is overwritten, which changes
+            the definition of \1 for the next match.
+            In JS: \1 matches an empty string, so it's equivalent to (b|a).
+
+        :param expr:
+        :return:
+        """
         raise NotImplementedError()
 
     def visit_character(self, expr: Character) -> EngineNFA:

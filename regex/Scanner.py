@@ -94,9 +94,9 @@ class Scanner:
             'b': TokenType.WORD_BOUND,
             'B': TokenType.NON_WORD_BOUND,
             'A': TokenType.START_OF_STRING_ONLY,
-            'z': TokenType.END_OFF_STRING_ONLY_NOT_NEWLINE,
+            # 'z': TokenType.END_OFF_STRING_ONLY_NOT_NEWLINE,
             'Z': TokenType.END_OFF_STRING_ONLY,
-            'G': TokenType.PRE_MATCH_END
+            # 'G': TokenType.PRE_MATCH_END
         }
 
     def scan_tokens(self) -> List[Token]:

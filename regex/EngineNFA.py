@@ -295,12 +295,12 @@ class EngineNFA:
                 matcher, to_state = current_state.transitions[c]
                 matched, consumed = matcher.matches(string, i, group_map=self.group_matches)
                 if matched:
-                    # copy visited
-                    cp = set(visited)
                     if consumed == 0:
                         # Don't follow the transition. Already have been in that state
                         if to_state.name in visited:
                             continue
+                        # copy visited
+                        cp = set(visited)
                         # Remember that made this transition
                         cp.add(current_state.name)
                     else:

@@ -3,7 +3,7 @@ from functools import reduce
 from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
     IndividualCharMatcher
 from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
-    EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher
+    EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -370,16 +370,22 @@ class Interpreter(Visitor):
             The 1st group technically matches an empty string (ε/""), so \1 also matches an empty string and it
             succeeds.
 
+            * This implementation will follow as PCRE. Mainly because empty group is not syntax valid.
+
             2. Unmatched groups
             For example: regex (b)?\1a with input "a".
             The 1st group fails to match, but since it's optional, it continues trying the rest and arrives \1.
             In PCRE: unmatched backreferences always fails.
             In JS: unmatched group is the same as an empty group, so \1 matches an empty string and succeeds.
 
+            * This implementation will follow as JS, that is to match an empty string and success
+
             3. Backreference before or even inside the group
             For example: regex \1(a) and (a\1).
             In PCRE: it always fails.
             In JS: equivalent to regex (a).
+
+            * This implementation will follow as PCRE.
 
             4. Backreference in an alternative
             For example: regex (\1b|a)+. It looks like a recursion.
@@ -387,10 +393,12 @@ class Interpreter(Visitor):
             the definition of \1 for the next match.
             In JS: \1 matches an empty string, so it's equivalent to (b|a).
 
+            * This implementation will follow as PCRE.
+
         :param expr:
         :return:
         """
-        raise NotImplementedError()
+        return self._basic_nfa(BackReferenceMatcher(int(expr.number.value)))
 
     def visit_character(self, expr: Character) -> EngineNFA:
         return self._single_symbol_nfa(c(expr.token.value))

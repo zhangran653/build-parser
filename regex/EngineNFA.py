@@ -4,10 +4,19 @@ from regex.CharaterClassMatcher import ClassMatcher
 
 
 class Matcher:
-    def matches(self, string: str, pos: int) -> bool:
-        raise NotImplementedError()
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        """
+        Take input string, current position and a previous group map.
+        Return a tuple in which:
+         - first element for matches or not.
+         - second element for the number of characters that this matcher consumes if
+           successfully matched.
 
-    def is_epsilon(self) -> bool:
+        :param string:
+        :param pos:
+        :param previous_group:
+        :return:
+        """
         raise NotImplementedError()
 
     def get_label(self) -> str:
@@ -19,13 +28,13 @@ class CharacterMatcher(Matcher):
     def __init__(self, c):
         self.c = c
 
-    def matches(self, string: str, pos: int) -> bool:
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
         if pos > len(string) - 1:
-            return False
-        return self.c == string[pos]
-
-    def is_epsilon(self) -> bool:
-        return False
+            return False, None
+        if self.c == string[pos]:
+            return True, 1
+        else:
+            return False, None
 
     def get_label(self) -> str:
         return self.c
@@ -39,11 +48,8 @@ class CharacterMatcher(Matcher):
 
 class EpsilonMatcher(Matcher):
 
-    def matches(self, string: str, pos: int) -> bool:
-        return True
-
-    def is_epsilon(self):
-        return True
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        return True, 0
 
     def get_label(self):
         return 'epsilon'
@@ -57,11 +63,11 @@ class EpsilonMatcher(Matcher):
 
 class StartOfStringMatcher(Matcher):
 
-    def matches(self, string: str, pos: int) -> bool:
-        return pos == 0
-
-    def is_epsilon(self) -> bool:
-        return True
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if pos == 0:
+            return True, 0
+        else:
+            return False, None
 
     def get_label(self) -> str:
         return "^"
@@ -75,11 +81,11 @@ class StartOfStringMatcher(Matcher):
 
 class StartOfLineMatcher(Matcher):
 
-    def matches(self, string: str, pos: int) -> bool:
-        return pos == 0 or string[pos - 1] == '\n'
-
-    def is_epsilon(self) -> bool:
-        return True
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if pos == 0 or string[pos - 1] == '\n':
+            return True, 0
+        else:
+            return False, None
 
     def get_label(self) -> str:
         return "^"
@@ -93,11 +99,10 @@ class StartOfLineMatcher(Matcher):
 
 class EndOfStringMatcher(Matcher):
 
-    def matches(self, string: str, pos: int) -> bool:
-        return pos == len(string)
-
-    def is_epsilon(self) -> bool:
-        return True
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if pos == len(string):
+            return True, 0
+        return False, None
 
     def get_label(self) -> str:
         return "$"
@@ -111,11 +116,10 @@ class EndOfStringMatcher(Matcher):
 
 class EndOfLineMatcher(Matcher):
 
-    def matches(self, string: str, pos: int) -> bool:
-        return pos == len(string) or string[pos] == '\n'
-
-    def is_epsilon(self) -> bool:
-        return True
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if pos == len(string) or string[pos] == '\n':
+            return True, 0
+        return False, None
 
     def get_label(self) -> str:
         return "$"
@@ -127,17 +131,33 @@ class EndOfLineMatcher(Matcher):
         return self.__repr__()
 
 
+class BackReferenceMatcher(Matcher):
+    def __init__(self, group_id: int):
+        self.group_id = group_id
+
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        group_pos = kwargs['group_map'].get(self.group_id, None)
+        if not group_pos:
+            return False, None
+        start, end = group_pos[0], group_pos[1]
+        if pos + (end - start) > len(string):
+            return False, None
+        if string[start:end] == string[pos:pos + end - start]:
+            return True, end - start
+        return False, None
+
+    def get_label(self) -> str:
+        return f"backreference: \\{self.group_id}"
+
+
 class CustomMatcher(Matcher):
     def __init__(self, class_matcher: ClassMatcher):
         self.matcher = class_matcher
 
-    def matches(self, string: str, pos: int) -> bool:
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
         if pos > len(string) - 1:
-            return False
-        return self.matcher.matches(string, pos)
-
-    def is_epsilon(self):
-        return False
+            return False, None
+        return self.matcher.matches(string, pos, **kwargs)
 
     def get_label(self):
         return "CustomMatcher"
@@ -186,6 +206,7 @@ class EngineNFA:
         self.initial_state = None
         self.ending_states = []
         self.group_name_map = {}
+        self.group_matches = {}
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
@@ -252,6 +273,7 @@ class EngineNFA:
             groups[g] = [pos, None]
         for g in state.end_groups:
             groups[g][1] = pos
+            self.group_matches[g] = [groups[g][0], groups[g][1]]
 
     def compute(self, string: str, pos: int = 0) -> dict[int:list[int, int]]:
         # (current position of string, current state, visited states through epsilon,group map)
@@ -262,23 +284,28 @@ class EngineNFA:
             # group is a right-open interval [l, r)
             self.compute_groups(current_state, groups, i)
             if current_state.name in self.ending_states:
+                # TODO compute_groups function may set groups that will be backtracked
+                for k, v in self.group_matches.items():
+                    if groups[k][0] != self.group_matches[k][0]:
+                        groups[k] = [self.group_matches[k][0], self.group_matches[k][1]]
                 return groups
             if current_state.atomic_group_end:
                 stack = []
             for c in range(len(current_state.transitions) - 1, -1, -1):
                 matcher, to_state = current_state.transitions[c]
-                if matcher.matches(string, i):
+                matched, consumed = matcher.matches(string, i, group_map=self.group_matches)
+                if matched:
                     # copy visited
-                    if matcher.is_epsilon():
+                    cp = set(visited)
+                    if consumed == 0:
                         # Don't follow the transition. Already have been in that state
                         if to_state.name in visited:
                             continue
-                        cp = set(visited)
                         # Remember that made this transition
                         cp.add(current_state.name)
                     else:
                         # transversing a non-epsilon transition, reset the visited counter
                         cp = set()
-                    next_i = i if matcher.is_epsilon() else i + 1
+                    next_i = i + consumed
                     stack.append((next_i, to_state, cp, groups))
         return None

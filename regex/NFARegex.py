@@ -32,11 +32,13 @@ class NFARegex:
         if not capture_groups:
             self.groups = {}
             return self.groups
+
+        groups = {}
         for k, v in capture_groups.items():
             if v[1] is not None:
-                self.groups[k] = CaptureGroup(k, v[0], v[1], string[v[0]:v[1]], self.group_name_map[k])
-
-        return self.groups
+                groups[k] = CaptureGroup(k, v[0], v[1], string[v[0]:v[1]], self.group_name_map[k])
+        self.groups = groups
+        return groups
 
     def find(self, string: str):
         """
@@ -45,17 +47,20 @@ class NFARegex:
         :param string:
         :return:
         """
-        for i in range(self._pos, len(string)):
-            self.compute(string, i)
-            if not self.groups:
-                continue
-            # update position as end position of group 0
-            self._pos = self.groups[0].pos_e
-            return self.groups
+        if self._pos > len(string):
+            return None
 
-        # still not found
-        self._pos = len(string)
-        return None
+        i = self._pos
+        while True:
+            groups = self.compute(string, i)
+            if not groups:
+                i += 1
+                if i > len(string) - 1:
+                    self._pos = len(string) + 1
+                    return None
+            else:
+                self._pos = i + 1 if groups[0].pos_e == i else groups[0].pos_e
+                return groups
 
     def find_all(self, string: str):
         """
@@ -64,12 +69,7 @@ class NFARegex:
         :return:
         """
         matches = []
-        p = 0
-        while p < len(string):
-            self.compute(string, p)
-            if self.groups:
-                matches.append(self.groups)
-                p = p + 1 if self.groups[0].pos_e == p else self.groups[0].pos_e
-            else:
-                p += 1
+        self._pos = 0
+        while self.find(string):
+            matches.append(self.groups)
         return matches

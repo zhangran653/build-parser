@@ -515,6 +515,21 @@ class RegexTest(unittest.TestCase):
         nfa.reset()
         s = "abc"
         assert not nfa.compute(s)
+        print('--')
+        nfa = NFARegex("a*")
+        s = "aa"
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('--')
+        nfa.reset()
+        ret = nfa.find_all(s)
+        for r in ret:
+            for k, v in r.items():
+                print(v)
+                print()
 
     def test28(self):
         nfa = NFARegex("(a)\\1")

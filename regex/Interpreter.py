@@ -3,7 +3,8 @@ from functools import reduce
 from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
     IndividualCharMatcher
 from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
-    EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher
+    EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher, QuantifierCounter, \
+    QuantifierGateMatcher, QuantifierCountMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -69,6 +70,7 @@ class Interpreter(Visitor):
         self.group_name_map = {}
         # for generate group id
         self.group_id_stack = []
+        self.counters = []
 
     def build_nfa(self) -> EngineNFA:
         self.sg.reset()
@@ -78,6 +80,7 @@ class Interpreter(Visitor):
         self.group_name_map[group] = None
         self.nfa = self.ast.accept(self)
         self.nfa.add_group(self.nfa.initial_state, self.nfa.ending_states[0], group)
+        self.nfa.counters = self.counters
         return self.nfa
 
     def _next_id(self) -> str:
@@ -249,6 +252,48 @@ class Interpreter(Visitor):
             nfa.add_transition(nfa.initial_state, nfa.ending_states[0], EpsilonMatcher())
         return nfa
 
+    def _range_quantifier(self, nfa: EngineNFA, low: int, up: int, fix_bound: bool, lazy: bool) -> EngineNFA:
+        """
+        A range quantifier {n,m} specifies that the preceding element must occur at least n times and at most m times.
+        To implement a range quantifier in regular expression engine, adding a specific Matcher that can handle range
+        quantification seems like a good approach.
+
+               _________________ε____________________
+              |                                     |
+              ↓                                     |
+        new_init ---ε---> {r--------[r]} ---CM---> new_gate ---GM---> new_end
+                          ^         .       ^                  ^
+                          |         |       |                  |
+                          |____ε____|   CountMatcher        GateMatcher
+
+        :param nfa:
+        :return:
+        """
+        counter = QuantifierCounter()
+        self.counters.append(counter)
+        count_matcher = QuantifierCountMatcher(counter)
+        gate_matcher = QuantifierGateMatcher(counter, low, up, fix_bound)
+
+        new_init = self._next_id()
+        new_end = self._next_id()
+        new_gate = self._next_id()
+
+        nfa.add_states(new_init, new_end, new_gate)
+
+        nfa.add_transition(new_init, nfa.initial_state, EpsilonMatcher())
+        nfa.add_transition(nfa.ending_states[0], new_gate, count_matcher)
+
+        if lazy:
+            nfa.add_transition(new_gate, new_end, gate_matcher)
+            nfa.add_transition(new_gate, nfa.initial_state, EpsilonMatcher())
+        else:
+            nfa.add_transition(new_gate, nfa.initial_state, EpsilonMatcher())
+            nfa.add_transition(new_gate, new_end, gate_matcher)
+
+        nfa.initial_state = new_init
+        nfa.ending_states = [new_end]
+        return nfa
+
     def visit_expression(self, expr: Expression) -> EngineNFA:
         if expr.alternation:
             nfa = self._alternative_nfa(expr.subexpression.accept(self), expr.alternation.accept(self))
@@ -404,8 +449,8 @@ class Interpreter(Visitor):
         return self._single_symbol_nfa(c(expr.token.value))
 
     def visit_range_quantifier(self, expr: RangeQuantifier) -> EngineNFA:
-        # TODO
-        raise NotImplementedError()
+        nfa = expr.expr.accept(self)
+        return self._range_quantifier(nfa, expr.low_bound, expr.up_bound, expr.fixed_bound, expr.lazy)
 
     def visit_zero_or_more_quantifier(self, expr: ZeroOrMoreQuantifier) -> EngineNFA:
         return self._asterisk(expr.expr.accept(self), expr.lazy)

@@ -324,7 +324,6 @@ class RegexTest(unittest.TestCase):
     def print_groups(self, nfa: NFARegex):
         for k, v in nfa.groups.items():
             print(v)
-        print()
 
     def test17(self):
         nfa = NFARegex(r"(?<g1>a|b)+c*")
@@ -577,9 +576,111 @@ class RegexTest(unittest.TestCase):
         s = "aabb"
         assert not nfa.find(s)
 
-
         nfa = NFARegex("^(\\1b|a)+$")
         s = "aababb"
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+    def test29(self):
+        print("---")
+        regex = "a{2,5}"
+        nfa = NFARegex(regex)
+        s = "aa"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        nfa.reset()
+        s = "aaa"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        nfa.reset()
+        s = "aaaa"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        nfa.reset()
+        s = "aaaaa"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        nfa.reset()
+        s = "a"
+        print(f'input:{s} ; regex:{regex} ')
+        assert not nfa.compute(s)
+        print("---")
+        nfa.reset()
+        s = "aaaaaa"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        regex = '\d{2,5}'
+        nfa = NFARegex(regex)
+        s = "1"
+        print(f'input:{s} ; regex:{regex} ')
+        assert not nfa.compute(s)
+        print("---")
+        nfa.reset()
+        s = "21"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+        print("---")
+        nfa.reset()
+        s = "21123"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('---')
+        nfa.reset()
+        s = "211afa2a3e234ad345634"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+
+    def test30(self):
+        print('-----')
+        regex = '\d{2,5}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "123412341adsf123412afd1324asdf1324as1234123454zd234"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('-----')
+        regex = '[0-9]{2,5}?'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "123412341adsf123412afd1324asdf1324as1234123454zd234"
+        print(f'input:{s} ; regex:{regex} ')
         assert nfa.compute(s)
         nfa.reset()
         while nfa.find(s):

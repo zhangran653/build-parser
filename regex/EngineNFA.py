@@ -163,6 +163,69 @@ class CustomMatcher(Matcher):
         return "CustomMatcher"
 
 
+class QuantifierCounter:
+    def __init__(self):
+        self._count = 0
+
+    def count(self):
+        self._count += 1
+
+    def reset(self):
+        self._count = 0
+
+    def get_count(self) -> int:
+        return self._count
+
+    def __repr__(self):
+        return f'{{ "QuantifierCounter":{self.get_count()} }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class QuantifierCountMatcher(Matcher):
+    def __init__(self, counter: QuantifierCounter):
+        self.counter = counter
+
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        self.counter.count()
+        return True, 0
+
+    def get_label(self):
+        return 'QuantifierCountMatcher'
+
+    def __repr__(self):
+        return f'{{ "QuantifierCountMatcher":{self.counter.get_count()} }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class QuantifierGateMatcher(Matcher):
+    def __init__(self, counter: QuantifierCounter, low: int, up: int, fix_bound: bool):
+        self.counter = counter
+        self.low = low
+        self.up = up
+        self.fix_bound = fix_bound
+
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if self.fix_bound:
+            return (True, 0) if self.counter.get_count() == self.low else (False, None)
+        elif self.up is not None:
+            return (True, 0) if self.low <= self.counter.get_count() <= self.up else (False, None)
+        else:
+            return (True, 0) if self.low <= self.counter.get_count() else (False, None)
+
+    def __repr__(self):
+        return f'{{ "QuantifierGateMatcher":{self.counter.get_count()} }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+    def get_label(self):
+        return 'QuantifierGateMatcher'
+
+
 class State:
     def __init__(self, name):
         self.name = name
@@ -207,6 +270,7 @@ class EngineNFA:
         self.ending_states = []
         self.group_name_map = {}
         self.group_matches = {}
+        self.counters = []
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
@@ -275,7 +339,12 @@ class EngineNFA:
             groups[g][1] = pos
             self.group_matches[g] = [groups[g][0], groups[g][1]]
 
+    def reset_counter(self):
+        for c in self.counters:
+            c.reset()
+
     def compute(self, string: str, pos: int = 0) -> dict[int:list[int, int]]:
+        self.reset_counter()
         # (current position of string, current state, visited states through epsilon,group map)
         stack = [(pos, self.states[self.initial_state], set(), {})]
         # push initial state. the i is current position of string

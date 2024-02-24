@@ -302,7 +302,6 @@ class EngineNFA:
         self.group_name_map = {}
         self.group_matches = {}
         self.counters = []
-        self.ending_gate_matcher = None
 
     def draw_nfa(self, path: str, label: str = None):
         dot = Digraph(comment='NFA')

@@ -258,26 +258,32 @@ class Interpreter(Visitor):
         To implement a range quantifier in regular expression engine, adding a specific Matcher that can handle range
         quantification seems like a good approach.
 
-                                    LoopMatcher
-                                        ↓
-                           ____________LM____________
-                          |                          |
-                          ↓                          |
-        new_init ---ε---> {r--------[r]} ---CM---> new_gate ---GM---> new_end
-                                            ^                  ^
-                                            |                  |
-                                        CountMatcher        GateMatcher
-                                                  \         /
-                                                   \      /
-                                                    \   /
-                                                A Shared Counter
+                                    LoopMatcher *----------------------------------------
+                                        ↓                                               |
+                           ____________LM____________                                   |
+                          |                          |                                  |
+                          ↓                          |                                  |
+        new_init ---ε---> {r--------[r]} ---CM---> new_gate ---GM---> new_end           |
+                                            ^                  ^                        |
+                                            |                  |                        |
+                                        CountMatcher        GateMatcher                 |
+                                              *                   *                     |
+                                              |                   |                     |
+                                              |______        _____|                     |
+                                                    ↓       ↓                           |
+                                                 [A Shared Counter] ← -------------------
 
         There are two special matchers designed for range quantifier.
         - CountMatcher
             A matcher with a counter starts with 0. Consume 0 input and increase the counter by 1.
         - GateMatcher
-            A matcher with a counter shared with CountMatcher. Consume o input if the counter's value is in range of
+            A matcher with a counter shared with CountMatcher. Consume 0 input if the counter's value is in range of
             {n,m}
+        - LoopMatcher
+            A matcher with a counter shared with CountMatcher and GateMatcher. Consume 0 input if the current
+            counter value is compatible with {n,m}. An early false returned by this matcher will reduce back track
+            and transit to the GateMatcher sooner.
+
         Lazy quantifier will affect the order of transitions of GateMatcher and EpsilonMatcher from new_gate.
 
 

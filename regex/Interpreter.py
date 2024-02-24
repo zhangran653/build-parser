@@ -4,7 +4,7 @@ from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, 
     IndividualCharMatcher
 from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
     EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher, QuantifierCounter, \
-    QuantifierGateMatcher, QuantifierCountMatcher
+    QuantifierGateMatcher, QuantifierCountMatcher, QuantifierLoopMatcher
 from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
@@ -258,13 +258,15 @@ class Interpreter(Visitor):
         To implement a range quantifier in regular expression engine, adding a specific Matcher that can handle range
         quantification seems like a good approach.
 
-               _________________ε____________________
-              |                                     |
-              ↓                                     |
+                                    LoopMatcher
+                                        ↓
+                           ____________LM____________
+                          |                          |
+                          ↓                          |
         new_init ---ε---> {r--------[r]} ---CM---> new_gate ---GM---> new_end
-                          ^         .       ^                  ^
-                          |         |       |                  |
-                          |____ε____|   CountMatcher        GateMatcher
+                                            ^                  ^
+                                            |                  |
+                                        CountMatcher        GateMatcher
                                                   \         /
                                                    \      /
                                                     \   /
@@ -286,10 +288,11 @@ class Interpreter(Visitor):
         self.counters.append(counter)
         count_matcher = QuantifierCountMatcher(counter)
         gate_matcher = QuantifierGateMatcher(counter, low, up, fix_bound)
+        loop_matcher = QuantifierLoopMatcher(counter, low, up, fix_bound)
 
         new_init = self._next_id()
-        new_end = self._next_id()
         new_gate = self._next_id()
+        new_end = self._next_id()
 
         nfa.add_states(new_init, new_end, new_gate)
 
@@ -298,13 +301,15 @@ class Interpreter(Visitor):
 
         if lazy:
             nfa.add_transition(new_gate, new_end, gate_matcher)
-            nfa.add_transition(new_gate, nfa.initial_state, EpsilonMatcher())
+            nfa.add_transition(new_gate, nfa.initial_state, loop_matcher)
         else:
-            nfa.add_transition(new_gate, nfa.initial_state, EpsilonMatcher())
+            nfa.add_transition(new_gate, nfa.initial_state, loop_matcher)
             nfa.add_transition(new_gate, new_end, gate_matcher)
 
         nfa.initial_state = new_init
         nfa.ending_states = [new_end]
+
+        nfa.states[new_end].clear_counter.append(counter)
         return nfa
 
     def visit_expression(self, expr: Expression) -> EngineNFA:

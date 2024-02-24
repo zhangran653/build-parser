@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from regex.CharaterClassMatcher import ClassMatcher
+from graphviz import Digraph
 
 
 class Matcher:
@@ -52,7 +53,7 @@ class EpsilonMatcher(Matcher):
         return True, 0
 
     def get_label(self):
-        return 'epsilon'
+        return 'ε'
 
     def __repr__(self):
         return f'{{ "EpsilonMatcher":"{self.get_label()}" }}'
@@ -147,7 +148,7 @@ class BackReferenceMatcher(Matcher):
         return False, None
 
     def get_label(self) -> str:
-        return f"backreference: \\{self.group_id}"
+        return f"\\{self.group_id}"
 
 
 class CustomMatcher(Matcher):
@@ -160,7 +161,7 @@ class CustomMatcher(Matcher):
         return self.matcher.matches(string, pos, **kwargs)
 
     def get_label(self):
-        return "CustomMatcher"
+        return self.matcher.get_label()
 
 
 class QuantifierCounter:
@@ -192,13 +193,40 @@ class QuantifierCountMatcher(Matcher):
         return True, 0
 
     def get_label(self):
-        return 'QuantifierCountMatcher'
+        return 'CM'
 
     def __repr__(self):
         return f'{{ "QuantifierCountMatcher":{self.counter.get_count()} }}'
 
     def __str__(self):
         return self.__repr__()
+
+
+class QuantifierLoopMatcher(Matcher):
+    def __init__(self, counter: QuantifierCounter, low: int, up: int, fix_bound: bool):
+        self.counter = counter
+        self.low = low
+        self.up = up
+        self.fix_bound = fix_bound
+
+    def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
+        if self.fix_bound:
+            match = (True, 0) if self.counter.get_count() < self.low else (False, None)
+        elif self.up is not None:
+            match = (True, 0)
+        else:
+            match = (True, 0) if self.counter.get_count() < self.up else (False, None)
+
+        return match
+
+    def __repr__(self):
+        return f'{{ "QuantifierLoopMatcher":{{  }} }}'
+
+    def __str__(self):
+        return self.__repr__()
+
+    def get_label(self):
+        return f'LM'
 
 
 class QuantifierGateMatcher(Matcher):
@@ -210,20 +238,22 @@ class QuantifierGateMatcher(Matcher):
 
     def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
         if self.fix_bound:
-            return (True, 0) if self.counter.get_count() == self.low else (False, None)
+            match = (True, 0) if self.counter.get_count() == self.low else (False, None)
         elif self.up is not None:
-            return (True, 0) if self.low <= self.counter.get_count() <= self.up else (False, None)
+            match = (True, 0) if self.low <= self.counter.get_count() <= self.up else (False, None)
         else:
-            return (True, 0) if self.low <= self.counter.get_count() else (False, None)
+            match = (True, 0) if self.low <= self.counter.get_count() else (False, None)
+
+        return match
 
     def __repr__(self):
-        return f'{{ "QuantifierGateMatcher":{self.counter.get_count()} }}'
+        return f'{{ "QuantifierGateMatcher":{{ "low":{self.low},"up":{self.up},"fixed":{1 if self.fix_bound else 0} }} }}'
 
     def __str__(self):
         return self.__repr__()
 
     def get_label(self):
-        return 'QuantifierGateMatcher'
+        return f'GM{{{self.low}{"," if not self.fix_bound else ""}{self.up}}}'
 
 
 class State:
@@ -233,6 +263,7 @@ class State:
         self.start_groups = []
         self.end_groups = []
         self.atomic_group_end = False
+        self.clear_counter = []
 
     def add_transition(self, toState: State, matcher: Matcher):
         self.transitions.append([matcher, toState])
@@ -271,6 +302,28 @@ class EngineNFA:
         self.group_name_map = {}
         self.group_matches = {}
         self.counters = []
+        self.ending_gate_matcher = None
+
+    def draw_nfa(self, path: str, label: str = None):
+        dot = Digraph(comment='NFA')
+        dot.graph_attr['rankdir'] = 'LR'
+        dot.attr(label=label)
+        dot.attr(fontsize='16')
+
+        for s in self.states.keys():
+            # add node
+            if s == self.ending_states[0]:
+                dot.node(s, shape='doublecircle')
+            elif s == self.initial_state:
+                dot.node(s, shape='diamond')
+            else:
+                dot.node(s)
+
+        for s in self.states.values():
+            # add edges
+            for index, [matcher, to] in enumerate(s.transitions):
+                dot.edge(s.name, to.name, f"{index}.{matcher.get_label()}")
+        dot.render(path, format='png')
 
     def __repr__(self):
         formatted_map = "{" + ", ".join(f'"{key}": {value}' for key, value in self.states.items()) + "}"
@@ -339,6 +392,10 @@ class EngineNFA:
             groups[g][1] = pos
             self.group_matches[g] = [groups[g][0], groups[g][1]]
 
+    def reset_state_counter(self, state: State):
+        for c in state.clear_counter:
+            c.reset()
+
     def reset_counter(self):
         for c in self.counters:
             c.reset()
@@ -352,6 +409,7 @@ class EngineNFA:
             i, current_state, visited, groups = stack.pop()
             # group is a right-open interval [l, r)
             self.compute_groups(current_state, groups, i)
+            self.reset_state_counter(current_state)
             if current_state.name in self.ending_states:
                 # TODO compute_groups function may set groups that will be backtracked
                 for k, v in self.group_matches.items():

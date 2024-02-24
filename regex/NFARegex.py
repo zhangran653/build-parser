@@ -73,3 +73,6 @@ class NFARegex:
         while self.find(string):
             matches.append(self.groups)
         return matches
+
+    def draw_nfa(self, path):
+        self._nfa.draw_nfa(path, self._source)

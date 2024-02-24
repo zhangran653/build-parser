@@ -5,6 +5,9 @@ class ClassMatcher:
     def matches(self, string: str, pos: int, **kwargs) -> (bool, int):
         raise NotImplementedError()
 
+    def get_label(self):
+        raise NotImplementedError()
+
 
 class RangeMatcher(ClassMatcher):
     def __init__(self, start: str, end: str):
@@ -16,6 +19,9 @@ class RangeMatcher(ClassMatcher):
             return True, 1
         return False, None
 
+    def get_label(self):
+        return f'{self.start}-{self.end}'
+
 
 class IndividualCharMatcher(ClassMatcher):
     def __init__(self, chars: list[str]):
@@ -25,6 +31,13 @@ class IndividualCharMatcher(ClassMatcher):
         if string[pos] in self.chars:
             return True, 1
         return False, None
+
+    def get_label(self):
+        label = f''
+        for c in self.chars:
+            if c.isalpha():
+                label = f'{label}{c}'
+        return label
 
 
 class ComplexMatcher(ClassMatcher):
@@ -38,6 +51,12 @@ class ComplexMatcher(ClassMatcher):
             if matched:
                 return (True, consumed) if not self.negative else (False, None)
         return (False, None) if not self.negative else (True, 1)
+
+    def get_label(self):
+        label = f'{"^" if self.negative else ""}'
+        for m in self.matchers:
+            label = f"{label}{m.get_label()}"
+        return f"{label}"
 
 
 WHITE_SPACE = [" ", "\f", "\n", "\r", "\t", "\v", "\u00a0", "\u1680", "\u2028", "\u2029", "\u202f", "\u205f", "\u3000"]

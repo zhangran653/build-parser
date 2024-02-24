@@ -662,7 +662,6 @@ class RegexTest(unittest.TestCase):
         while nfa.find(s):
             self.print_groups(nfa)
 
-
     def test30(self):
         print('-----')
         regex = '\d{2,5}'
@@ -682,6 +681,125 @@ class RegexTest(unittest.TestCase):
         s = "123412341adsf123412afd1324asdf1324as1234123454zd234"
         print(f'input:{s} ; regex:{regex} ')
         assert nfa.compute(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        # TODO this is not right
+        """
+        input:ccaaaaccc ; regex:(a{1,2}|c{2,3}){1,2} 
+        output:
+        Group 0: ccaa. Pos: [0-4] 
+        Group 1: cc. Pos: [7-9] 
+        Group 0: aaccc. Pos: [4-9] 
+        Group 1: ccc. Pos: [6-9]
+        
+        expect:
+        Group 0: ccaa. Pos: [0-4] 
+        Group 1: aa. Pos: [2-4]       ← Here, why?  #TODO fix this ;(
+        Group 0: aaccc. Pos: [4-9] 
+        Group 1: ccc. Pos: [6-9]
+        """
+        print('-----')
+        regex = '(a{1,2}|c{2,3}){1,2}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('-----')
+        regex = '(a{2,4}|c{1,2}){2}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        # this is right
+        print('-----')
+        regex = '(?:a{2,3}|c){1}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        # this is right
+        print('-----')
+        regex = '(?:a{2,3}|c{1,2}){1}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        """
+        expect:
+        group 0: ccaaa. Pos: [0-5]
+        group 0: ccc. Pos: [6-9]
+        """
+        print('-----')
+        regex = '(?:a{2,3}|c{1,2}){1,2}'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('-----')
+        regex = '(?:a{2,3}|c{1,2}){1,2}?'
+        nfa = NFARegex(regex)
+        nfa.reset()
+        s = "ccaaaaccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        #
+        print('-----')
+        # regex = 'c{1,2}'
+        # nfa = NFARegex(regex)
+        # nfa.draw_nfa('./nfa1')
+        regex = '(?:c{1,2}){1,2}'
+        nfa = NFARegex(regex)
+        # nfa.draw_nfa('./nfa2')
+        nfa.reset()
+        s = "ccccccccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
+        nfa.reset()
+        while nfa.find(s):
+            self.print_groups(nfa)
+
+        print('-----')
+        # regex = 'c{1,2}'
+        # nfa = NFARegex(regex)
+        # nfa.draw_nfa('./nfa1')
+        regex = '(?:c{1,2}){1,2}?'
+        nfa = NFARegex(regex)
+        # nfa.draw_nfa('./nfa2')
+        nfa.reset()
+        s = "ccccccccc"
+        print(f'input:{s} ; regex:{regex} ')
+        assert nfa.find(s)
         nfa.reset()
         while nfa.find(s):
             self.print_groups(nfa)

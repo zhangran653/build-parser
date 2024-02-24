@@ -12,6 +12,7 @@ from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, Cha
     AnchorWordBoundary, AnchorNonWordBoundary, AnchorStartOfStringOnly, AnchorEndOfStringOnlyNotNewline, \
     AnchorEndOfStringOnly, AnchorPreviousMatchEnd
 
+# TODO back reference number resolve. Make it in range of group ids
 
 class StateNameGenerator:
     def __init__(self):

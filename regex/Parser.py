@@ -459,11 +459,20 @@ class Parser:
 
     def quantifier(self, expr: Expr):
         """
+        Range Quantifiers can only be applied to:
+        - Individual characters: For example, a{2,4} matches "aa", "aaa", or "aaaa".
+        - Character classes: For example, [a-z]{2,4} matches any lowercase letter sequence of length 2 to 4.
+        - Grouped expressions: For example, (abc){2,4} matches "abcabc", "abcabcabc", or "abcabcabcabc".
+        - Character sets with special meaning: . \d \w \s
+        - Negated character classes:\D \W \S
+        - Backreferences
+
         Quantifier ::= ( "*" | "+" | "?" | "{" Integer+ ( "," Integer* )? "}" ) LazyModifier?
         :return:
         """
         token = self.previous()
         if token.type == TokenType.LEFT_BRACE:
+            # TODO Some preceding expression is not quantifiable
             self.consume(TokenType.INT, "expect integer for range quantifier lower bound")
             low_bound = self.previous()
             low = int(low_bound.value)

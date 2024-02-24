@@ -265,6 +265,19 @@ class Interpreter(Visitor):
                           ^         .       ^                  ^
                           |         |       |                  |
                           |____ε____|   CountMatcher        GateMatcher
+                                                  \         /
+                                                   \      /
+                                                    \   /
+                                                A Shared Counter
+
+        There are two special matchers designed for range quantifier.
+        - CountMatcher
+            A matcher with a counter starts with 0. Consume 0 input and increase the counter by 1.
+        - GateMatcher
+            A matcher with a counter shared with CountMatcher. Consume o input if the counter's value is in range of
+            {n,m}
+        Lazy quantifier will affect the order of transitions of GateMatcher and EpsilonMatcher from new_gate.
+
 
         :param nfa:
         :return:

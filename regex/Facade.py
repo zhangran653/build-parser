@@ -254,7 +254,7 @@ class CharClassAnyWhitespaceInverted(Expr):
 
 
 class Backreference(Expr):
-    def __init__(self, number: Token):
+    def __init__(self, number: int):
         self.number = number
 
     def accept(self, visitor):

@@ -333,8 +333,12 @@ class Parser:
             return CharClassAnyWhitespaceInverted(token)
 
     def back_reference(self):
-        self.consume(TokenType.INT, "expect integer in backreference")
-        return Backreference(self.previous())
+        self.consume(TokenType.INT, "expect integer in back reference")
+        group_id = f'{self.previous().value}'
+        while self.match(TokenType.INT):
+            group_id = f'{group_id}{self.previous().value}'
+
+        return Backreference(int(group_id))
 
     def char(self) -> Character:
         c = self.previous()

@@ -89,7 +89,7 @@ class ASTPrinter(Visitor):
     def visit_backreference(self, expr: Backreference):
         return f'{{' \
                f'   "type":"Backreference",' \
-               f'   "token":"{expr.number.value}"' \
+               f'   "token":{expr.number}' \
                f'}}'
 
     def visit_any_char(self, expr):

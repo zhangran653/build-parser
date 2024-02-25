@@ -451,9 +451,9 @@ class Interpreter(Visitor):
         :param expr:
         :return:
         """
-        if int(expr.number.value) > self.group_count:
+        if expr.number > self.group_count:
             raise ValueError(f'back reference group id out of range. should be in [0,{self.group_count}]')
-        return self._basic_nfa(BackReferenceMatcher(int(expr.number.value)))
+        return self._basic_nfa(BackReferenceMatcher(expr.number))
 
     def visit_character(self, expr: Character) -> EngineNFA:
         return self._single_symbol_nfa(c(expr.token.value))

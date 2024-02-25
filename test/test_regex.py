@@ -803,3 +803,4 @@ class RegexTest(unittest.TestCase):
         nfa.reset()
         while nfa.find(s):
             self.print_groups(nfa)
+

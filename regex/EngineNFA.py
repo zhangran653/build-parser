@@ -410,7 +410,7 @@ class EngineNFA:
             self.compute_groups(current_state, groups, i)
             self.reset_state_counter(current_state)
             if current_state.name in self.ending_states:
-                # TODO compute_groups function may set groups that will be backtracked
+                # compute_groups function may set groups that will be backtracked
                 for k, v in self.group_matches.items():
                     if groups[k][0] != self.group_matches[k][0]:
                         groups[k] = [self.group_matches[k][0], self.group_matches[k][1]]

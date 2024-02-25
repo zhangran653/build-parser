@@ -14,11 +14,11 @@ class State:
         self.atomic_group_end = False
         self.clear_counter = []
 
-    def add_transition(self, toState: State, matcher: Matcher):
-        self.transitions.append([matcher, toState])
+    def add_transition(self, to_state: State, matcher: Matcher):
+        self.transitions.append([matcher, to_state])
 
-    def add_first_transition(self, toState: State, matcher: Matcher):
-        self.transitions.insert(0, [matcher, toState])
+    def add_first_transition(self, to_state: State, matcher: Matcher):
+        self.transitions.insert(0, [matcher, to_state])
 
     def __repr__(self):
         ts = [f'{{ "matcher": {m},"toState":"{t.name}" }}' for m, t in self.transitions]

@@ -27,19 +27,6 @@ class StateNameGenerator:
         self.id = 0
 
 
-class GroupNameGenerator:
-    def __init__(self):
-        self.id = 0
-
-    def next(self):
-        name = self.id
-        self.id += 1
-        return name
-
-    def reset(self):
-        self.id = 0
-
-
 class Symbol:
     def __init__(self, char: str = None):
         self.char = char
@@ -65,19 +52,18 @@ class Interpreter(Visitor):
         self.mode = mode
         self.ast = ast
         self.sg = StateNameGenerator()
-        self.gg = GroupNameGenerator()
         self.nfa = None
         # a [group_id:group_name] map, used for capture group name
         self.group_name_map = {}
         # for generate group id
         self.group_id_stack = []
         self.counters = []
+        self.group_count = 0
 
     def build_nfa(self) -> EngineNFA:
         self.sg.reset()
-        self.gg.reset()
         # by default the root of the tree is a group
-        group = self.gg.next()
+        group = 0
         self.group_name_map[group] = None
         self.nfa = self.ast.accept(self)
         self.nfa.add_group(self.nfa.initial_state, self.nfa.ending_states[0], group)
@@ -342,9 +328,6 @@ class Interpreter(Visitor):
         return reduce(lambda nfa1, nfa2: nfa1.append_nfa(nfa2, nfa1.ending_states[0]), item_nfa)
 
     def visit_group(self, expr: Group) -> EngineNFA:
-        if not expr.non_capturing:
-            self.group_id_stack.append(self.gg.next())
-
         nfa = expr.expression.accept(self)
         if expr.atomic:
             nfa.set_atomic_state(nfa.ending_states[0])
@@ -468,6 +451,8 @@ class Interpreter(Visitor):
         :param expr:
         :return:
         """
+        if int(expr.number.value) > self.group_count:
+            raise ValueError(f'back reference group id out of range. should be in [0,{self.group_count}]')
         return self._basic_nfa(BackReferenceMatcher(int(expr.number.value)))
 
     def visit_character(self, expr: Character) -> EngineNFA:

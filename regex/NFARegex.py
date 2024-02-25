@@ -3,6 +3,7 @@ from typing import Optional
 from regex.EngineNFA import CaptureGroup, EngineNFA
 from regex.Interpreter import Interpreter
 from regex.Parser import Parser
+from regex.Resolver import Resolver
 from regex.Scanner import Scanner
 
 
@@ -23,6 +24,7 @@ class NFARegex:
         if not self.ast:
             return None
         self.interpreter = Interpreter(self.ast, **self.mode)
+        Resolver(self.interpreter)
         self._nfa = self.interpreter.build_nfa()
         self.group_name_map = self.interpreter.group_name_map
         return self._nfa

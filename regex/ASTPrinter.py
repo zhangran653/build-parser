@@ -1,4 +1,5 @@
-from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
+from regex.Facade import Visitor
+from regex.Parser import RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
     ZeroOrOneQuantifier, OneOrMoreQuantifier, ZeroOrMoreQuantifier

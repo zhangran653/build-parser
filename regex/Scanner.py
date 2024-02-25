@@ -1,59 +1,6 @@
-from enum import Enum, auto
-
 from typing import List
 
-
-class TokenType(Enum):
-    # single token
-    LEFT_PAREN = auto()  # (
-    RIGHT_PAREN = auto()  # )
-    LEFT_BRACE = auto()  # {
-    RIGHT_BRACE = auto()  # }
-    DOT = auto()  # .
-    PLUS = auto()  # +
-    LEFT_BRACKET = auto()  # [
-    RIGHT_BRACKET = auto()  # ]
-    MINUS = auto()  # -
-    STAR = auto()  # *
-    QUESTION = auto()  # ?
-    COMMA = auto()  # ,
-    COLON = auto()  # :
-    LESS = auto()  # <
-    GREAT = auto()  # >
-    S_ANCHOR = auto()  # ^
-    E_ANCHOR = auto()  # $
-    ESCAPE = auto()  # \
-    OR = auto()  # |
-    INT = auto()  # int
-    LETTER = auto()  # a-zA-Z
-    ASCII = auto()  # ascii expect for int and letter
-    CHAR = auto()  # normal character EXCEPT INT, LETTER ,ASCII
-
-    # ESCAPES
-    ANY_WORD = auto()  # \w
-    ANY_WORD_INVERTED = auto()  # \W
-    ANY_DIGIT = auto()  # \d
-    ANY_DIGIT_INVERTED = auto()  # \D
-    ANY_WHITE_SPACE = auto()  # \s
-    ANY_WHITE_SPACE_INVERTED = auto()  # \S
-
-    WORD_BOUND = auto()  # \b
-    NON_WORD_BOUND = auto()  # \B
-    START_OF_STRING_ONLY = auto()  # \A
-    END_OFF_STRING_ONLY_NOT_NEWLINE = auto()  # \z
-    END_OFF_STRING_ONLY = auto()  # \Z
-    PRE_MATCH_END = auto()  # \G
-
-    EOF = auto()  # EOF
-
-
-class Token:
-    def __init__(self, type_: TokenType, value: str = None):
-        self.type = type_
-        self.value = value
-
-    def __repr__(self):
-        return f"Token({self.type}, {repr(self.value)})"
+from regex.Facade import TokenType, Token
 
 
 class Scanner:

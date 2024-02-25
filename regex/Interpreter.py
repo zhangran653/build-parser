@@ -5,14 +5,14 @@ from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, 
 from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
     EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher, QuantifierCounter, \
     QuantifierGateMatcher, QuantifierCountMatcher, QuantifierLoopMatcher
-from regex.Parser import Visitor, RangeQuantifier, Character, Backreference, CharRange, \
+from regex.Facade import Visitor
+from regex.Parser import RangeQuantifier, Character, Backreference, CharRange, \
     CharacterGroup, Match, Group, SubExpression, Expression, CharClassAnyWord, CharClassAnyWordInverted, \
     CharClassAnyDecimalDigit, CharClassAnyDecimalDigitInverted, CharClassAnyWhitespace, CharClassAnyWhitespaceInverted, \
     ZeroOrOneQuantifier, OneOrMoreQuantifier, ZeroOrMoreQuantifier, AnyChar, AnchorStartOfString, AnchorEndOfString, \
     AnchorWordBoundary, AnchorNonWordBoundary, AnchorStartOfStringOnly, AnchorEndOfStringOnlyNotNewline, \
     AnchorEndOfStringOnly, AnchorPreviousMatchEnd
 
-# TODO back reference number resolve. Make it in range of group ids
 
 class StateNameGenerator:
     def __init__(self):

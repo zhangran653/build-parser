@@ -1,8 +1,9 @@
 from functools import reduce
 
-from regex.CharaterClassMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
+from regex.EngineNFA import EngineNFA
+from regex.NFAMatcher import ClassMatcher, CHARACTER_CLASSES_MATCHER, RangeMatcher, ComplexMatcher, \
     IndividualCharMatcher
-from regex.EngineNFA import Matcher, EngineNFA, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
+from regex.NFAMatcher import Matcher, EpsilonMatcher, CharacterMatcher, CustomMatcher, StartOfStringMatcher, \
     EndOfStringMatcher, StartOfLineMatcher, EndOfLineMatcher, BackReferenceMatcher, QuantifierCounter, \
     QuantifierGateMatcher, QuantifierCountMatcher, QuantifierLoopMatcher
 from regex.Facade import Visitor
@@ -130,7 +131,7 @@ class Interpreter(Visitor):
                 \       /
                  b\   /ε
                    q4
-        :param naf1:
+        :param nfa1:
         :param nfa2:
         :return:
         """

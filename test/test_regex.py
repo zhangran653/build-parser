@@ -2,7 +2,8 @@ import json
 import unittest
 
 from regex.ASTPrinter import ASTPrinter
-from regex.EngineNFA import EngineNFA, CharacterMatcher, EpsilonMatcher
+from regex.EngineNFA import EngineNFA
+from regex.NFAMatcher import CharacterMatcher, EpsilonMatcher
 from regex.NFARegex import NFARegex
 from regex.Parser import Parser
 from regex.Scanner import Scanner

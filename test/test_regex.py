@@ -515,6 +515,58 @@ class RegexTest(unittest.TestCase):
         nfa.reset()
         s = "abc"
         assert not nfa.compute(s)
+
+    def test28(self):
+        # nfa = NFARegex("(a)\\1")
+        # s = "aa"
+        # assert nfa.find(s)
+        # nfa.reset()
+        # while nfa.find(s):
+        #     self.print_groups(nfa)
+        #
+        # nfa = NFARegex("(['\"])[a-zA-Z]+\\1")
+        # s = '"easdfaeialskdjflajkei"'
+        # assert nfa.find(s)
+        # nfa.reset()
+        # while nfa.find(s):
+        #     self.print_groups(nfa)
+        # nfa.reset()
+        # s = '"easdfeasg\''
+        # assert not nfa.find(s)
+        # nfa.reset()
+        # s = '\'aefasdf"'
+        # assert not nfa.find(s)
+        # nfa.reset()
+        # s = '\'ewwwww\''
+        # assert nfa.find(s)
+        # nfa.reset()
+        # while nfa.find(s):
+        #     self.print_groups(nfa)
+
+        # nfa = NFARegex("(b)?\\1a")
+        # s = "a"
+        # assert nfa.find(s)
+        # nfa.reset()
+        # while nfa.find(s):
+        #     self.print_groups(nfa)
+        #
+        # nfa = NFARegex("\\1(a)")
+        # s = "a"
+        # assert not nfa.find(s)
+        #
+        # nfa = NFARegex("(a\\1)")
+        # s = "a"
+        # assert not nfa.find(s)
+        #
+        # nfa = NFARegex("^(\\1b|a)+$")
+        # s = "aabb"
+        # assert not nfa.find(s)
+
+        nfa = NFARegex("(b|a)+")
+        s = "a"
+
+        if nfa.compute(s):
+            self.print_groups(nfa)
         print('--')
         nfa = NFARegex("a*")
         s = "aa"
